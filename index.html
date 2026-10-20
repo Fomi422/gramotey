@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Грамотей">
+<meta name="theme-color" content="#3f8f3a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Грамотей</title>
+<style>
+:root{--sky1:#8fd3ff;--sky2:#e3f5ff;--panel:#fbf4e4;--panel2:#efe3c8;--ink:#2a1f14;--muted:#7a6a55;--grass:#5bb046;--grass2:#3f8f3a;--dirt:#8b5a2b;--ok:#2e9e44;--bad:#d64b3a;--gold:#f2b632;--line:#2a1f14;--acc:#3a7bd5}
+body.th-cave{--sky1:#2f333d;--sky2:#596070}
+body.th-snow{--sky1:#b9d7ee;--sky2:#ffffff}
+body.th-sunset{--sky1:#ff9a62;--sky2:#ffe1a8}
+body.th-night{--sky1:#101a3a;--sky2:#3a3f7a}
+body.th-desert{--sky1:#f3c97a;--sky2:#fff2d0}
+body.th-sea{--sky1:#2aa3c9;--sky2:#c9f1ff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Rounded","SF Pro Text","Segoe UI",Roboto,sans-serif;color:var(--ink);background:linear-gradient(var(--sky1),var(--sky2) 60%);background-attachment:fixed;min-height:100dvh;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+.hidden{display:none!important}
+#top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 8px) 12px 8px;background:var(--grass2);border-bottom:4px solid var(--dirt);color:#fff}
+#top .lv{background:var(--gold);color:var(--ink);font-weight:900;border:3px solid var(--line);padding:2px 7px;font-size:14px;border-radius:3px}
+#top .xpw{flex:1;min-width:50px}
+#top .ttl{font-size:12px;font-weight:800;text-shadow:0 1px 0 rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:9px;background:rgba(0,0,0,.35);border:2px solid var(--line);border-radius:2px;overflow:hidden}
+.bar>i{display:block;height:100%;background:#7ee35a}
+.cur{display:flex;align-items:center;gap:3px;font-weight:900;font-size:15px;background:rgba(0,0,0,.25);padding:3px 7px;border-radius:3px}
+#snd{background:none;border:0;font-size:18px;padding:2px;color:#fff}
+#view{padding:12px 12px calc(96px + env(safe-area-inset-bottom));max-width:560px;margin:0 auto}
+#tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:var(--dirt);border-top:4px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+#tabs button{flex:1;background:none;border:0;color:#f3e2c4;padding:7px 0 8px;font-size:11px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:1px;position:relative}
+#tabs button b{font-size:22px;line-height:1.1}
+#tabs button.on{color:#fff;background:rgba(255,255,255,.12)}
+#tabs .dot{position:absolute;top:4px;right:calc(50% - 20px);background:var(--bad);color:#fff;font-size:10px;border-radius:8px;padding:0 5px;border:2px solid var(--line)}
+.card{background:var(--panel);border:3px solid var(--line);border-radius:4px;box-shadow:inset -4px -4px 0 rgba(0,0,0,.08),inset 4px 4px 0 rgba(255,255,255,.7),0 3px 0 rgba(0,0,0,.25);padding:12px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card h3{margin:10px 0 6px;font-size:15px}
+.muted{color:var(--muted);font-size:13px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#6fbf4a;color:#fff;font-weight:900;border:3px solid var(--line);border-radius:4px;padding:10px 14px;box-shadow:inset 0 -5px 0 rgba(0,0,0,.25),inset 0 3px 0 rgba(255,255,255,.3);text-shadow:0 2px 0 rgba(0,0,0,.35);font-size:16px}
+.btn:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+.btn.blue{background:var(--acc)}.btn.gray{background:#9c9284}.btn.red{background:var(--bad)}.btn.gold{background:#e3a21a}.btn.purple{background:#8a5cd1}
+.btn.wide{width:100%}.btn.sm{padding:6px 10px;font-size:14px}
+.btn[disabled]{filter:grayscale(1);opacity:.55}
+.row{display:flex;gap:8px;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gem{vertical-align:-3px}
+.blk{vertical-align:-5px;border:1px solid rgba(0,0,0,.5);image-rendering:pixelated}
+/* home */
+.hero{display:flex;gap:12px;align-items:center}
+.pet{font-size:46px;line-height:1;filter:drop-shadow(0 3px 0 rgba(0,0,0,.25));animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.bubble{position:relative;background:#fff;border:3px solid var(--line);border-radius:6px;padding:8px 10px;font-size:14px;font-weight:600;flex:1}
+.bubble:before{content:"";position:absolute;left:-10px;top:16px;border:7px solid transparent;border-right-color:var(--line)}
+.quest{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:2px dashed var(--panel2);font-size:14px}
+.quest:last-child{border:0}
+.quest .chk{width:22px;height:22px;border:3px solid var(--line);background:#fff;display:grid;place-items:center;font-size:14px;flex:none}
+.quest.done .chk{background:var(--ok);color:#fff}
+.quest .qb{flex:1}.quest .qn{font-weight:700}
+.village{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:linear-gradient(#9be07a,#5bb046);border:3px solid var(--line);padding:8px 6px 6px;border-radius:4px;position:relative}
+.plot{aspect-ratio:1;display:grid;place-items:center;font-size:30px;background:rgba(139,90,43,.25);border-radius:3px}
+.plot.empty{font-size:14px;color:rgba(0,0,0,.35);border:2px dashed rgba(0,0,0,.25);background:none}
+.streak{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.streak i{width:16px;height:16px;border:2px solid var(--line);background:#fff;display:block}
+.streak i.on{background:var(--gold)}
+/* worlds */
+.wt{display:flex;gap:10px;align-items:center;padding:10px;margin-bottom:10px;width:100%;text-align:left;background:var(--panel)}
+.wt .wi{font-size:34px;width:48px;height:48px;display:grid;place-items:center;background:var(--panel2);border:3px solid var(--line);flex:none}
+.wt .wn{font-weight:900;font-size:16px}
+.stars{color:#c9b98f;font-size:14px;letter-spacing:1px}.stars b{color:#e3a21a}
+.badge{background:var(--bad);color:#fff;font-weight:800;font-size:12px;padding:1px 6px;border:2px solid var(--line);border-radius:10px}
+.badge.g{background:var(--ok)}
+/* craft & shop */
+.res{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.res div{background:var(--panel2);border:2px solid var(--line);padding:5px 3px;text-align:center;font-weight:800;font-size:13px}
+.rec{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:2px dashed var(--panel2)}
+.rec:last-child{border:0}
+.rec .ri{font-size:30px;width:46px;height:46px;display:grid;place-items:center;background:var(--panel2);border:3px solid var(--line);flex:none;position:relative}
+.rec .ri small{position:absolute;right:-6px;bottom:-6px;background:var(--gold);border:2px solid var(--line);font-size:11px;font-weight:900;padding:0 4px}
+.rec .rb{flex:1;min-width:0}.rec .rn{font-weight:900}.rec .rd{font-size:12px;color:var(--muted)}
+.cost{font-size:13px;font-weight:800;margin-top:2px;display:flex;flex-wrap:wrap;gap:6px}
+.cost span.no{color:var(--bad)}
+.lock{opacity:.5}
+.seg{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.seg button{flex:1;background:var(--panel2);border:3px solid var(--line);font-weight:800;padding:7px 4px;font-size:13px;border-radius:3px}
+.seg button.on{background:var(--gold)}
+/* stats */
+.st{margin:6px 0}.st .l{display:flex;justify-content:space-between;font-size:13px;font-weight:700}
+.bar.big{height:14px;background:#e0d3b5}.bar.big>i{background:var(--ok)}
+.bar.big>i.mid{background:var(--gold)}.bar.big>i.low{background:var(--bad)}
+.ach{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ach div{background:var(--panel2);border:2px solid var(--line);text-align:center;padding:6px 2px;font-size:10px;font-weight:700;line-height:1.15}
+.ach div b{display:block;font-size:24px;margin-bottom:2px}
+.ach div.off{filter:grayscale(1);opacity:.4}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal i{aspect-ratio:1;border:2px solid var(--line);background:#fff;display:grid;place-items:center;font-size:10px;font-style:normal;font-weight:700}
+.cal i.on{background:var(--grass)}.cal i.today{outline:3px solid var(--gold)}
+/* overlay / task */
+.ov{position:fixed;inset:0;z-index:20;background:var(--panel);display:flex;flex-direction:column}
+.ov .oh{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 8px) 10px 8px;background:var(--grass2);color:#fff;border-bottom:4px solid var(--dirt)}
+.ov .oh .x{background:rgba(0,0,0,.25);border:2px solid var(--line);color:#fff;font-weight:900;width:34px;height:34px;font-size:18px;border-radius:3px}
+.ov .oh .pr{flex:1}
+.ov .oh .ib{background:rgba(0,0,0,.25);border:2px solid var(--line);color:#fff;font-weight:800;height:34px;padding:0 8px;border-radius:3px;font-size:14px}
+.ov .ob{flex:1;overflow-y:auto;padding:14px 12px 20px;max-width:560px;width:100%;margin:0 auto;-webkit-overflow-scrolling:touch}
+.ov .of{padding:6px 6px calc(6px + env(safe-area-inset-bottom));background:var(--panel2);border-top:3px solid var(--line)}
+.pdots{display:flex;gap:3px}.pdots i{flex:1;height:10px;background:rgba(0,0,0,.3);border:2px solid var(--line)}
+.pdots i.ok{background:#7ee35a}.pdots i.bad{background:var(--bad)}.pdots i.cur{background:#fff}
+.tcat{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.prompt{font-size:17px;font-weight:800;margin:4px 0 14px}
+.word{font-size:36px;font-weight:900;text-align:center;letter-spacing:1px;margin:14px 0 20px;word-break:break-word}
+.gap{display:inline-block;min-width:.8em;border-bottom:4px solid var(--acc);color:var(--acc)}
+.fill{color:var(--acc)}.fill.ok{color:var(--ok)}.fill.bad{color:var(--bad)}
+.opts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.opt{min-width:84px;font-size:28px;font-weight:900;background:#fff;border:3px solid var(--line);border-radius:4px;padding:10px 16px;box-shadow:inset 0 -5px 0 rgba(0,0,0,.12)}
+.opt.w{font-size:20px;min-width:0;width:100%}
+.opt.ok{background:#b8f0a4}.opt.bad{background:#f7b3a8}.opt.dim{opacity:.45}
+.typed{min-height:56px;font-size:30px;font-weight:900;text-align:center;border:3px solid var(--line);background:#fff;padding:8px;border-radius:4px;letter-spacing:1px;word-break:break-word}
+.typed.long{font-size:18px;text-align:left;min-height:110px;letter-spacing:0;line-height:1.5;font-weight:700}
+.typed .caret{display:inline-block;width:3px;height:1em;background:var(--acc);vertical-align:-3px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.say{display:flex;gap:10px;justify-content:center;margin:6px 0 14px}
+.say .btn{font-size:22px}
+.kb{display:flex;flex-direction:column;gap:5px;user-select:none}
+.kb .kr{display:flex;gap:4px;justify-content:center}
+.kb button{flex:1;max-width:40px;height:44px;background:#fff;border:2px solid var(--line);border-radius:4px;font-size:19px;font-weight:700;padding:0;box-shadow:inset 0 -3px 0 rgba(0,0,0,.15)}
+.kb button:active{background:var(--gold)}
+.kb button.wide{max-width:none;flex:2;font-size:15px}
+.kb button.ok{background:#6fbf4a;color:#fff;font-weight:900;flex:2.4;max-width:none;font-size:16px}
+.kb button.sp{flex:5;max-width:none}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
+.tile{width:46px;height:52px;font-size:26px;font-weight:900;background:#fff;border:3px solid var(--line);border-radius:4px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.12)}
+.tile.used{visibility:hidden}
+.zs{display:flex;flex-wrap:wrap;align-items:center;row-gap:10px;font-size:22px;font-weight:700;line-height:1.3;margin:10px 0 16px}
+.zs .zg{width:24px;height:36px;border:0;background:none;padding:0;position:relative;font-size:28px;font-weight:900;color:var(--bad)}
+.zs .zg:after{content:"";position:absolute;left:9px;bottom:2px;width:6px;height:6px;border-radius:50%;background:rgba(0,0,0,.18)}
+.zs .zg.on:after{display:none}
+.zs .zg.miss{background:#ffe08a;border-radius:4px}
+.zs .zg.wrong{background:#f7b3a8;border-radius:4px}
+.pt{background:#fff;border:3px solid var(--line);border-radius:4px;padding:10px;margin-bottom:10px}
+.pt .ptl{font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.pt .opts .opt{font-size:20px;min-width:0;flex:1}
+.fb{border:3px solid var(--line);border-radius:4px;padding:12px;margin-top:16px;animation:pop .25s ease-out}
+.fb.ok{background:#dcf6cf}.fb.bad{background:#fde3dd}
+.fb .fbh{font-size:19px;font-weight:900;margin-bottom:6px;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.rw{font-size:15px;background:rgba(255,255,255,.7);border:2px solid var(--line);padding:1px 7px;border-radius:3px;display:inline-flex;gap:4px;align-items:center}
+.expl{background:#fffdf5;border:2px solid var(--line);border-left:8px solid var(--acc);padding:6px 10px;border-radius:3px;font-size:15px;line-height:1.45;margin:8px 0}
+.expl p{margin:6px 0}
+.expl .chk{font-weight:900;font-size:17px;background:#e8f1ff;padding:0 5px;border-radius:3px}
+.expl .ans{font-weight:900;font-size:18px;background:#e2f7d8;padding:0 5px;border-radius:3px}
+.expl .big{font-size:26px;font-weight:900;text-align:center;margin:6px 0}
+.expl .tip{font-size:13px;color:var(--muted)}
+b.st{color:var(--bad);text-decoration:underline}
+b.trap{color:var(--acc);background:#e8f1ff;border-radius:3px;padding:0 1px}
+.diff{font-size:22px;font-weight:900;letter-spacing:1px}
+.diff .x{color:var(--bad);text-decoration:line-through}
+.diff .m{color:var(--ok);background:#d8f5cc;border-radius:3px}
+@keyframes pop{0%{transform:scale(.9);opacity:0}100%{transform:scale(1);opacity:1}}
+.mt{font-size:20px;line-height:1.6;font-weight:600;background:#fff;border:3px solid var(--line);border-radius:4px;padding:12px}
+.mt .w{border-radius:3px;padding:0 2px}
+.mt .w.bad{background:#f7b3a8}.mt .w.miss{background:#ffe08a}.mt .w.ok{background:#d8f5cc}
+.res-big{text-align:center}
+.res-big .sc{font-size:54px;font-weight:900}
+.res-big .str{font-size:40px;letter-spacing:4px}
+.rwlist{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0}
+.rwlist span{background:#fff;border:2px solid var(--line);padding:3px 8px;font-weight:900;border-radius:3px;display:inline-flex;gap:4px;align-items:center}
+details.mis{background:#fff;border:2px solid var(--line);border-radius:3px;margin:6px 0;padding:6px 8px}
+details.mis summary{font-weight:800;cursor:pointer}
+/* modal & toasts */
+#modal{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+#modal .sheet{background:var(--panel);border:3px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;width:100%;max-width:560px;max-height:88dvh;overflow:auto;padding:14px 14px calc(16px + env(safe-area-inset-bottom));animation:up .2s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+#modal h2{margin:0 0 8px}
+.rule p,.rule li{font-size:15px;line-height:1.5}
+.rule .ex{background:#fffdf5;border:2px dashed var(--line);padding:6px 8px;border-radius:3px}
+#toasts{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top) + 58px);z-index:60;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+.toast{background:#2a1f14;color:#fff;border:3px solid var(--gold);border-radius:6px;padding:8px 12px;font-weight:800;font-size:14px;max-width:92%;display:flex;gap:8px;align-items:center;animation:pop .25s ease-out;box-shadow:0 4px 0 rgba(0,0,0,.3)}
+.toast b{font-size:24px}
+.confetti{position:fixed;top:-20px;width:12px;height:12px;z-index:70;pointer-events:none;animation:fall 1.6s linear forwards;border:1px solid rgba(0,0,0,.4)}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+.lvlup{position:fixed;inset:0;z-index:65;display:grid;place-items:center;background:rgba(0,0,0,.5);animation:pop .3s}
+.lvlup .card{text-align:center;max-width:320px}
+.lvlup .big{font-size:60px}
+.small{font-size:12px}
+.mtop{margin-top:10px}
+.center{text-align:center}
+.flex1{flex:1}
+.pill{display:inline-block;background:var(--panel2);border:2px solid var(--line);border-radius:10px;padding:1px 8px;font-size:12px;font-weight:800}
+</style>
+</head>
+<body>
+<header id="top"></header>
+<main id="view"></main>
+<nav id="tabs"></nav>
+<div id="task" class="ov hidden"></div>
+<div id="modal" class="hidden"></div>
+<div id="toasts"></div>
+<script>
+"use strict";
+/* ================= ДАННЫЕ ================= */
+// Безударные гласные: [слово с пропуском, буква, проверочное (заглавная = ударная), сложность]
+const BEZUD=[
+['дв_ры','о','двОр',1],['тр_ва','а','трАвы',1],['з_мля','е','зЕмли',1],['р_ка','е','рЕки',1],['г_ра','о','гОры',1],
+['с_ва','о','сОвы',1],['сл_ды','е','слЕд',1],['з_ма','и','зИмы',1],['гл_за','а','глАз',1],['сн_жок','е','снЕг',2],
+['ст_на','е','стЕны',1],['д_ма','о','дОм',1],['л_сной','е','лЕс',2],['к_зёл','о','кОзы',2],['м_ря','о','мОре',2],
+['р_ды','я','рЯд',2],['п_тно','я','пЯтна',2],['пл_сать','я','плЯска',2],['п_ла','и','пИлка',2],['д_жди','о','дОждь',2],
+['ст_лы','о','стОл',1],['х_лмы','о','хОлм',1],['тр_пинка','о','трОпка',2],['з_лёный','е','зЕлень',2],['ж_лтеть','е','жЁлтый',3],
+['с_стра','е','сЁстры',2],['зв_зда','е','звЁзды',2],['л_сток','и','лИст',1],['гр_бы','и','грИб',1],['ч_сы','а','чАс',1],
+['кр_чать','и','крИк',2],['в_зать','я','вЯжет',3],['т_пло','е','тЁплый',2],['х_дить','о','хОдит',2],['л_мать','о','лОмкий',3],
+['св_тить','е','свЕт',2],['в_сна','е','вЁсны',2],['ст_рик','а','стАрый',2],['с_ды','а','сАд',1],['д_ревья','е','дЕрево',2],
+['гн_зда','е','гнЁзда',2],['кр_ты','о','крОт',1],['м_ста','е','мЕсто',1],['пл_ды','о','плОд',2],['к_ты','о','кОт',1],
+['т_нул','о','тОнет',3],['ш_ги','а','шАг',1],['п_ля','о','пОле',1],['в_лна','о','вОлны',2],['с_ло','е','сЁла',2],
+['к_сить','о','кОсит',3],['ч_стота','и','чИсто',3],['гр_за','о','грОзы',1],['б_жать','е','бЕг',2],['тр_сти','я','трЯска',3],
+['пч_ла','е','пчЁлы',2],['ст_кло','е','стЁкла',2]
+];
+// Парные согласные: [слово, буква, пара, проверочное, сложность]
+const PARN=[
+['ду_','б','п','дубы',1],['гри_','б','п','грибы',1],['сне_','г','к','снега',1],['моро_','з','с','морозы',1],['гла_','з','с','глаза',1],
+['хле_','б','п','хлеба',1],['сугро_','б','п','сугробы',1],['дру_','г','к','подруга',2],['зу_','б','п','зубы',1],['но_','ж','ш','ножи',1],
+['ё_','ж','ш','ежи',1],['ёр_','ш','ж','ерши',2],['сторо_','ж','ш','сторожа',2],['кла_','д','т','клады',2],['са_','д','т','сады',1],
+['пру_','д','т','пруды',1],['ло_ка','ж','ш','ложечка',2],['кру_ка','ж','ш','кружечка',2],['ша_ка','п','б','шапочка',2],['ры_ка','б','п','рыба',2],
+['ска_ка','з','с','сказать',2],['сла_кий','д','т','сладость',2],['у_кий','з','с','узенький',2],['гла_ки','з','с','глаза',2],['зага_ка','д','т','загадать',2],
+['мя_кий','г','к','мягонький',3],['лё_кий','г','к','лёгонький',3],['бли_кий','з','с','близок',2],['ре_кий','д','т','редок',3],['ни_кий','з','с','низок',2],
+['кни_ка','ж','ш','книжечка',2],['ука_ка','з','с','указать',3],['тру_ка','б','п','трубочка',2],['моро_ный','з','с','морозы',2]
+];
+// Непроизносимые: [слово, буква ('' = нет), соблазн, проверочное, сложность]
+const NEPR=[
+['со_нце','л','','солнышко',1],['ле_ница','с','','лесенка',1],['праз_ник','д','','праздновать',2],['звёз_ный','д','','звезда',2],
+['чес_ный','т','','честь',1],['мес_ный','т','','место',1],['вкус_ный','','т','вкусен',2],['извес_ный','т','','известие',2],
+['опас_ный','','т','опасен',2],['прелес_ный','т','','прелесть',2],['сер_це','д','','сердечко',2],['гиган_ский','т','','гигант',3],
+['ужас_ный','','т','ужасен',2],['чудес_ный','','т','чудеса',2],['грус_ный','т','','грусть',1],['радос_ный','т','','радость',1],
+['свис_нуть','т','','свист',2],['ненас_ный','т','','ненастье',3],['счас_ливый','т','','счастье',2],['поз_но','д','','опоздать',2],
+['облас_ной','т','','область',3],['интерес_ный','','т','интересен',2],['вес_ник','т','','весть',3],['хрус_нуть','т','','хруст',2],
+['учас_ник','т','','участие',2],['доблес_ный','т','','доблесть',3],['тес_ный','','т','тесен',3]
+];
+// Ъ и Ь: [слово, знак, приставка или !примечание]
+const RAZD=[
+['под_езд','ъ','под'],['об_явление','ъ','об'],['с_ел','ъ','с'],['раз_ехались','ъ','раз'],['от_езд','ъ','от'],['под_ём','ъ','под'],
+['об_ём','ъ','об'],['с_ёмка','ъ','с'],['пред_явить','ъ','пред'],['из_ян','ъ','из'],['об_яснить','ъ','об'],['в_ехал','ъ','в'],
+['в_юга','ь',''],['сем_я','ь',''],['руч_и','ь',''],['вороб_и','ь',''],['лист_я','ь',''],['п_ёт','ь',''],['кол_я','ь',''],
+['плат_е','ь',''],['солов_и','ь',''],['мурав_и','ь',''],['сер_ёзный','ь',''],['вар_е','ь',''],['дерев_я','ь',''],
+['обез_яна','ь','!Осторожно: «обез» здесь — <b>не приставка</b>! Обезьяна — словарное слово, и в нём пишется <b>разделительный Ь</b>.']
+];
+// Двойные согласные: [слово, ответ, другой вариант, сложность, примечание]
+const UDV=[
+['а_ея','лл','л',1],['кла_','сс','с',1],['ка_а','сс','с',1],['ко_екция','лл','л',2],['а_етит','пп','п',2],['програ_а','мм','м',2],
+['те_итория','рр','р',2],['те_аса','рр','р',3],['анте_а','нн','н',3],['ба_ейн','сс','с',2],['мета_','лл','л',2],['килогра_','мм','м',2],
+['ко_ектив','лл','л',2],['су_ота','бб','б',1],['ва_а','нн','н',1],['гру_а','пп','п',1],['па_ажир','сс','с',1],['телегра_а','мм','м',2],
+['ми_ион','лл','л',2],['гри_','пп','п',2],
+['ра_каз','сс','с',2,'Здесь две «с» встретились на стыке: приставка <b>рас-</b> + корень <b>-сказ-</b> = рас<b>с</b>каз.'],
+['ра_тояние','сс','с',3,'Приставка <b>рас-</b> + корень <b>-стоя-</b>: рас<b>с</b>тояние — две «с».'],
+['ру_кий','сс','с',2,'Корень <b>рус-</b> + суффикс <b>-ск-</b>: рус<b>с</b>кий — две «с».'],
+['а_рель','п','пп',1],['ба_ет','л','лл',2],['кана_','л','лл',2],['ко_ета','м','мм',2],['ми_ута','н','нн',1]
+];
+// Приставка или предлог: {часть|p} — приставка, {часть|g:вставка} — предлог
+const PRIST=[
+'{до|p}бежал {до|g:самой}речки','{за|p}летел {за|g:тёмное}облако','{от|p}ошёл {от|g:открытого}окна','{с|p}бежал {с|g:крутой}горки',
+'{в|p}бежал {в|g:свой}класс','{под|p}полз {под|g:густой}куст','{про|p}читал {про|g:синее}море','{на|p}писал {на|g:чёрной}доске',
+'{за|p}шёл {за|g:старый}дом','{по|p}плыл {по|g:широкой}реке','{при|p}нёс {в|g:большой}корзине','{вы|p}шел {из|g:тёплого}дома',
+'{до|p}ехал {до|g:нашего}города','{у|p}летел {к|g:тёплому}морю','{с|p}прыгнул {с|g:высокого}крыльца','{на|p}дел шапку {на|g:свою}голову',
+'{по|p}дошёл {к|g:нашему}дому','{от|p}ъехал {от|g:старого}вокзала'
+];
+// Запятые: [предложение, объяснение]
+const ZAP=[
+['На поляне росли ромашки, колокольчики и васильки.','Однородные подлежащие: <b>ромашки, колокольчики, васильки</b> (что росло?). Между первыми двумя союза нет — ставим запятую. Перед одиночным <b>и</b> запятая не нужна.'],
+['Ветер шумел и гнул деревья.','Однородные сказуемые <b>шумел и гнул</b> соединены одиночным союзом <b>и</b> — запятая не нужна.'],
+['Мальчик не бежал, а шёл.','Однородные сказуемые соединены союзом <b>а</b>. Перед <b>а</b> всегда ставится запятая.'],
+['День был холодный, но солнечный.','Однородные члены соединены союзом <b>но</b>. Перед <b>но</b> всегда ставится запятая.'],
+['Мы читали, писали, рисовали.','Однородные сказуемые без союзов — между ними запятые.'],
+['Наступила осень, и птицы улетели на юг.','Это <b>сложное предложение</b>: две основы — <b>осень наступила</b> и <b>птицы улетели</b>. Между частями ставим запятую, даже перед <b>и</b>.'],
+['Сверкнула молния, загремел гром.','<b>Сложное предложение</b>: две основы — <b>молния сверкнула</b>, <b>гром загремел</b>. Между частями — запятая.'],
+['Над рекой кружились чайки и стрижи.','Однородные подлежащие <b>чайки и стрижи</b> соединены одиночным <b>и</b> — запятая не нужна.'],
+['Кот потянулся, зевнул и уснул.','Три однородных сказуемых: между первыми двумя — запятая, перед одиночным <b>и</b> — нет.'],
+['Снег падал на крыши, на деревья, на дорогу.','Однородные члены (падал на что?) без союзов — разделяем запятыми.'],
+['Ёжик фыркнул и убежал в кусты.','Одиночный союз <b>и</b> между однородными сказуемыми — запятая не нужна.'],
+['Небо потемнело, и пошёл дождь.','<b>Сложное предложение</b>: <b>небо потемнело</b> и <b>дождь пошёл</b> — две основы. Перед <b>и</b> ставим запятую.'],
+['Солнце светило ярко, а ветер был холодный.','<b>Сложное предложение</b>: <b>солнце светило</b> и <b>ветер был</b>. Перед <b>а</b> — запятая.'],
+['В саду созрели яблоки, груши, сливы.','Однородные подлежащие без союзов — между ними запятые.'],
+['Ребята катались на санках и на лыжах.','Однородные члены соединены одиночным <b>и</b> — запятая не нужна.'],
+['Листья желтеют, краснеют и падают.','Однородные сказуемые: между первыми двумя — запятая, перед одиночным <b>и</b> — нет.'],
+['Белка взяла орех и спряталась.','Одиночный <b>и</b> соединяет однородные сказуемые — запятая не нужна.'],
+['Утром был мороз, а днём пошёл снег.','<b>Сложное предложение</b>: <b>был мороз</b> и <b>снег пошёл</b>. Перед <b>а</b> — запятая.'],
+['Лес стоял тихий, но не грустный.','Перед союзом <b>но</b> между однородными членами всегда запятая.'],
+['Дети пели песни, играли, смеялись.','Однородные сказуемые без союзов — запятые.'],
+['Мы пошли в лес и собрали грибы.','Одиночный <b>и</b> между однородными сказуемыми — запятая не нужна.'],
+['Подул ветер, зашумели деревья.','<b>Сложное предложение</b>: <b>ветер подул</b>, <b>деревья зашумели</b> — между частями запятая.']
+];
+// Письмо по памяти
+const TEXTS=[
+'Поздняя осень. Листья облетели с деревьев. В лесу тихо и грустно.',
+'Над рекой стоит густой туман. Скоро взойдёт солнце, и туман растает.',
+'Ветер гонит по небу серые тучи. Идёт холодный дождь.',
+'На опушке растут берёзы, осины и дубы. Под деревьями прячутся грибы.',
+'Белка запасла на зиму орехи, шишки и сушёные грибы.',
+'Мы приехали на вокзал. Пассажиры спешили к поездам.',
+'Звёзды ярко сверкают в ночном небе. Мороз крепчает.',
+'Зимой в лесу чудесно. Снег искрится на солнце, деревья стоят в пушистых шапках.',
+'Скворцы улетели на юг. Опустели гнёзда. Скоро придёт зима.',
+'Ребята отправились на экскурсию в библиотеку. Там много интересных книг.',
+'Солнце светит ярко, но греет слабо. На лужах блестит тонкий лёд.',
+'Сегодня мы с товарищем катались на коньках. Вечером пошёл снег.'
+];
+const DICT_ALL=["автомоби´ль", "агроно´м", "а´дрес", "аккура´тно", "алле´я", "альбо´м", "аппети´т", "бага´ж", "бе´рег", "берёза", "бесе´да", "бесе´довать", "библиоте´ка", "библиоте´карь", "биле´т", "бога´тство", "боти´нки", "ваго´н", "вдруг", "везде´", "велосипе´д", "ве´тер", "вме´сте", "вокза´л", "вокру´г", "воробе´й", "воро´на", "во´семь", "воскресе´нье", "восто´к", "впереди´", "вто´рник", "вчера´", "газе´та", "гвозди´ка", "геро´й", "горе´ть", "горизо´нт", "горо´х", "два´дцать", "двена´дцать", "де´вочка", "дежу´рный", "дека´брь", "дере´вня", "дире´ктор", "до свида´ния", "доро´га", "ещё", "жела´ть", "желе´зо", "живо´тное", "жёлтый", "заво´д", "за´втра", "за´втрак", "заря´", "здесь", "здра´вствуйте", "земляни´ка", "извини´те", "издалека´", "и´ней", "инжене´р", "интере´сный", "календа´рь", "кани´кулы", "капу´ста", "каранда´ш", "карти´на", "карто´фель", "кастрю´ля", "кварти´ра", "килогра´мм", "киломе´тр", "класс", "коллекти´в", "колле´кция", "команди´р", "комба´йн", "комба´йнер", "компью´тер", "коньки´", "кора´бль", "коро´ва", "космона´вт", "костю´м", "костёр", "Кра´сная пло´щадь", "Кремль", "крова´ть", "ла´герь", "ле´стница", "лиси´ца", "лопа´та", "лу´чше", "лягу´шка", "магази´н", "мали´на", "маши´на", "ме´бель", "медве´дь", "ме´дленно", "ме´сяц", "мета´лл", "метро´", "молоко´", "молото´к", "морко´вь", "моро´з", "Москва´", "наза´д", "нале´во", "напра´во", "наро´д", "ноя´брь", "обе´д", "обезья´на", "о´блако", "оборо´на", "о´вощи", "овца´", "овёс", "огоро´д", "огуре´ц", "оде´жда", "оди´ннадцать", "одна´жды", "одува´нчик", "о´коло", "октя´брь", "оре´х", "оси´на", "оте´ц", "пальто´", "пассажи´р", "пассажи´рский", "пейза´ж", "пена´л", "песо´к", "пиро´г", "плато´к", "побе´да", "пого´да", "пожа´луйста", "помидо´р", "понеде´льник", "портре´т", "посу´да", "пото´м", "поэ´т", "прави´тельство", "пра´здник", "председа´тель", "прекра´сный", "приве´тливо", "путеше´ственник", "путеше´ствие", "пшени´ца", "пя´тница", "рабо´та", "рабо´чий", "ра´дио", "раке´та", "расстоя´ние", "расте´ние", "ребя´та", "рису´нок", "ро´дина", "рома´шка", "Росси´я", "ру´сский", "ряби´на", "салю´т", "самолёт", "сапоги´", "са´хар", "сверка´ть", "све´рху", "сви´тер", "свобо´да", "се´вер", "сего´дня", "сейча´с", "семена´", "сентя´брь", "се´ялка", "сире´нь", "ско´ро", "сле´ва", "снеги´рь", "сни´зу", "соба´ка", "солда´т", "соло´ма", "соро´ка", "спаси´бо", "спра´ва", "стака´н", "столи´ца", "суббо´та", "таре´лка", "телеви´зор", "телепереда´ча", "телефо´н", "тепе´рь", "теплово´з", "тетра´дь", "това´рищ", "топо´р", "тра´ктор", "трамва´й", "у´жин", "у´лица", "урожа´й", "учени´к", "учени´ца", "учи´тель", "фами´лия", "февра´ль", "хлеборо´б", "хозя´ин", "хозя´йство", "хорошо´", "челове´к", "четве´рг", "четы´ре", "чу´вство", "чёрный", "шестна´дцать", "шоссе´", "шофёр", "шёл", "щаве´ль", "экску´рсия", "электри´чество", "электрово´з", "электроста´нция", "я´блоко", "я´блоня", "я´года", "язы´к", "янва´рь"];
+const DICT_NEW4=new Set(["автомобиль", "агроном", "адрес", "аллея", "аппетит", "багаж", "беседа", "беседовать", "библиотека", "библиотекарь", "билет", "богатство", "ботинки", "вагон", "везде", "вокзал", "впереди", "вчера", "газета", "гореть", "горизонт", "двадцать", "двенадцать", "директор", "ещё", "железо", "завтра", "здесь", "издалека", "инженер", "календарь", "каникулы", "кастрюля", "килограмм", "километр", "командир", "комбайн", "комбайнер", "корабль", "космонавт", "костюм", "костёр", "лучше", "медленно", "металл", "назад", "налево", "направо", "оборона", "овца", "одиннадцать", "пассажир", "пассажирский", "пейзаж", "победа", "портрет", "правительство", "председатель", "прекрасный", "путешественник", "путешествие", "расстояние", "салют", "сверкать", "сверху", "свитер", "свобода", "сегодня", "сейчас", "семена", "сеялка", "слева", "справа", "тарелка", "телефон", "теперь", "тепловоз", "хлебороб", "хозяин", "хозяйство", "человек", "шестнадцать", "шофёр", "экскурсия", "электричество", "электровоз", "электростанция"]);
+
+/* ============ ПРАВИЛА ============ */
+const RULES={
+bezud:{t:'Безударный гласный в корне',h:`<p>Безударный гласный в корне надо <b>проверять</b>.</p><ol><li>Найди корень.</li><li>Измени слово или подбери однокоренное, чтобы гласный стал <b>ударным</b>.</li><li>Пиши ту же букву, что и под ударением.</li></ol><p class="ex">дв<b>о</b>ры — дв<u>о́</u>р · л<b>е</b>сной — л<u>е́</u>с · з<b>и</b>ма́ — з<u>и́</u>мы</p><p>Если проверить нельзя — это <b>словарное слово</b>: смотри в орфографический словарь.</p>`},
+parn:{t:'Парные согласные',h:`<p>Парные согласные: <b>б–п, в–ф, г–к, д–т, ж–ш, з–с</b>. На конце слова и перед другим согласным они звучат неясно.</p><ol><li>Измени слово так, чтобы после согласного стоял <b>гласный</b>.</li><li>Пиши ту букву, которую ясно слышишь в проверочном слове.</li></ol><p class="ex">ду<b>б</b> — ду<b>б</b>ы · ло<b>ж</b>ка — ло<b>ж</b>ечка · ни<b>з</b>кий — ни<b>з</b>ок</p>`},
+nepr:{t:'Непроизносимые согласные',h:`<p>В некоторых словах согласный <b>пишется, но не произносится</b>: со(л)нце, ле(с)тница, праз(д)ник.</p><ol><li>Подбери однокоренное слово, где этот согласный слышен: солнышко, лесенка, праздновать.</li><li>Если и в проверочном слове звука нет — букву <b>не пиши</b>: вкусный (вкусен), опасный (опасен).</li></ol><p class="ex">Будь внимателен с сочетаниями <b>стн, здн, лнц, рдц</b>.</p>`},
+razd:{t:'Разделительные Ъ и Ь',h:`<p><b>Ъ</b> пишется <b>после приставки</b>, которая оканчивается на согласный, перед <b>е, ё, ю, я</b>: подъезд, объявление, съел.</p><p><b>Ь</b> пишется <b>внутри слова</b> (в корне или перед окончанием) перед <b>е, ё, ю, я, и</b>: вьюга, семья, ручьи, воробьи.</p><p class="ex">Есть приставка на согласный перед е, ё, ю, я? → <b>Ъ</b>. Нет → <b>Ь</b>.</p>`},
+udv:{t:'Двойные согласные',h:`<p>Слова с двойными согласными в корне нужно <b>запомнить</b>: аллея, класс, касса, коллекция, программа, территория, аппетит, суббота.</p><p>Двойная согласная бывает и на стыке частей слова:</p><ul><li>приставка + корень: рас + сказ = ра<b>сс</b>каз</li><li>корень + суффикс: рус + ск + ий = ру<b>сс</b>кий</li></ul>`},
+prist:{t:'Приставка или предлог',h:`<p><b>Приставка</b> — часть слова, пишется <b>слитно</b>: <b>до</b>бежал, <b>по</b>шёл.</p><p><b>Предлог</b> — отдельное слово, пишется <b>раздельно</b>: <b>до</b> речки, <b>по</b> тропинке.</p><ol><li>Между предлогом и словом можно вставить другое слово: по (узкой) тропинке.</li><li>Предлоги стоят перед словами-предметами, а приставки — внутри слов-действий.</li></ol>`},
+zap:{t:'Запятые',h:`<p><b>Однородные члены</b> отвечают на один вопрос и относятся к одному слову.</p><ul><li>Без союзов — запятая: <i>Мы собирали грибы, ягоды, орехи.</i></li><li>Перед <b>а</b> и <b>но</b> — всегда запятая: <i>Не бежал, а шёл.</i></li><li>Одиночный <b>и</b> — запятая <b>не</b> нужна: <i>Ветер шумел и гнул деревья.</i></li></ul><p><b>Сложное предложение</b> — в нём две основы. Между частями ставим запятую, даже перед <b>и</b>: <i>Наступила осень, и птицы улетели.</i></p>`},
+slovar:{t:'Словарные слова',h:`<p><b>Словарные слова</b> правилом не проверить — их написание нужно <b>запомнить</b>.</p><ul><li>Произнеси слово по слогам так, как оно пишется.</li><li>Найди трудную букву и запомни её.</li><li>Напиши слово и проверь по словарю.</li></ul><p class="ex">Сундук сам возвращает трудные слова через 1, 3, 7, 14 и 30 дней — так они запоминаются навсегда.</p>`},
+dikt:{t:'Как писать диктант',h:`<ol><li>Дослушай слово до конца.</li><li>Найди «опасное место» — орфограмму.</li><li>Вспомни правило и проверь букву.</li><li>Напиши и прочитай слово по слогам.</li></ol><p class="ex">Можно нажать 🔊 ещё раз и послушать медленнее (🐢).</p>`},
+pamyat:{t:'Письмо по памяти',h:`<p>Памятка из учебника:</p><ol><li>Прочитай текст. Пойми, о ком и о чём говорится.</li><li>Найди орфограммы. Подумай, как проверить их написание. Трудные слова проговори по слогам.</li><li>Обрати внимание на знаки препинания.</li><li>Ещё раз прочитай и представь, как пишется каждое слово.</li><li>Пиши, проговаривая по слогам. Потом проверь.</li></ol>`}
+};
+
+/* ============ МИРЫ, ПРЕДМЕТЫ, ЛАВКА ============ */
+const WORLDS=[
+{id:'bezud',n:'Безударные гласные',i:'🌲',d:'дв…ры → двор'},
+{id:'parn',n:'Парные согласные',i:'⛰️',d:'ду… → дубы'},
+{id:'nepr',n:'Непроизносимые',i:'🌫️',d:'со…нце → солнышко'},
+{id:'razd',n:'Ъ и Ь',i:'🧱',d:'под…езд, в…юга'},
+{id:'udv',n:'Двойные согласные',i:'👯',d:'а…ея, кла…'},
+{id:'prist',n:'Приставка или предлог',i:'🌉',d:'пошёл по тропинке'},
+{id:'zap',n:'Запятые',i:'🦉',d:'однородные и сложные'},
+{id:'slovar',n:'Словарный сундук',i:'📦',d:'словарные слова 1–4 класса'},
+{id:'dikt',n:'Диктант',i:'🎧',d:'слушай и пиши'},
+{id:'pamyat',n:'Письмо по памяти',i:'🧠',d:'прочитай, запомни, напиши'}
+];
+const LEVEL_WORLDS=['bezud','parn','nepr','razd','udv','prist','zap','slovar','dikt'];
+const RES={
+wood:{n:'Дерево',c:['#a0703f','#7b5228','#c08a52'],p:2},stone:{n:'Камень',c:['#8d8d8d','#707070','#a9a9a9'],p:2},
+paper:{n:'Бумага',c:['#f4ecd6','#e6dabb','#8fa6c9'],p:2},coal:{n:'Уголь',c:['#8d8d8d','#707070','#1e1e1e'],p:3},
+iron:{n:'Железо',c:['#8d8d8d','#707070','#e2b996'],p:4},gold:{n:'Золото',c:['#8d8d8d','#707070','#ffd84a'],p:6},
+crystal:{n:'Кристалл',c:['#8d8d8d','#707070','#5ff0e8'],p:10}
+};
+const ITEMS={
+stick:{n:'Палка',i:'🥢',lv:1,cost:{wood:2},make:4,d:'Нужна почти во всех рецептах'},
+torch:{n:'Факел',i:'🔥',lv:1,cost:{stick:1,coal:1},make:2,d:'Бесплатная подсказка в задании (тратится)'},
+pick1:{n:'Деревянная кирка',i:'⛏️',lv:1,once:1,tier:['pick',1],cost:{wood:3,stick:2},d:'Шанс 15% на лишний ресурс'},
+sword1:{n:'Деревянный меч',i:'🗡️',lv:1,once:1,tier:['sword',1],cost:{wood:2,stick:1},d:'Шанс 15% на лишний изумруд'},
+scroll:{n:'Свиток',i:'📜',lv:2,cost:{paper:3,stick:1},d:'Для Книги правил и Карты'},
+shield:{n:'Щит',i:'🛡️',lv:2,cost:{wood:4,iron:1},d:'Спасает серию верных ответов от одной ошибки (тратится)'},
+chest:{n:'Сундук',i:'🧰',lv:2,once:1,cost:{wood:8},d:'+2 ресурса в ежедневном сундуке'},
+pick2:{n:'Каменная кирка',i:'⛏️',lv:2,once:1,tier:['pick',2],cost:{stone:3,stick:2},d:'Шанс 30% на лишний ресурс'},
+sword2:{n:'Каменный меч',i:'🗡️',lv:2,once:1,tier:['sword',2],cost:{stone:2,stick:1},d:'Шанс 30% на лишний изумруд'},
+ink:{n:'Чернильница',i:'🫙',lv:3,once:1,cost:{stone:2,coal:2},d:'Нужна для Книги правил'},
+pen:{n:'Перо писаря',i:'🪶',lv:3,once:1,cost:{stick:1,iron:1,paper:2},d:'+1 изумруд за каждое верное слово в диктанте и письме по памяти'},
+helmet:{n:'Шлем',i:'⛑️',lv:3,once:1,armor:1,cost:{iron:5},d:'+2 опыта за каждый верный ответ'},
+pick3:{n:'Железная кирка',i:'⛏️',lv:4,once:1,tier:['pick',3],cost:{iron:3,stick:2},d:'Шанс 45% на лишний ресурс'},
+sword3:{n:'Железный меч',i:'🗡️',lv:4,once:1,tier:['sword',3],cost:{iron:2,stick:1},d:'Шанс 45% на лишний изумруд'},
+lantern:{n:'Фонарь',i:'🏮',lv:4,once:1,cost:{iron:2,torch:1},d:'Каждый день +1 факел'},
+boots:{n:'Сапоги',i:'🥾',lv:4,once:1,armor:1,cost:{iron:4,wood:2},d:'+2 опыта за каждый верный ответ'},
+potion:{n:'Зелье ума',i:'🧪',lv:4,cost:{crystal:1,paper:2,coal:1},d:'Выпей перед походом — изумруды ×2 (тратится)'},
+book:{n:'Книга правил',i:'📘',lv:5,once:1,cost:{scroll:2,ink:1,paper:3},d:'+1 изумруд за каждое прочитанное «Почему так?» после верного ответа'},
+chestplate:{n:'Нагрудник',i:'🦺',lv:5,once:1,armor:1,cost:{iron:8},d:'+2 опыта за каждый верный ответ'},
+compass:{n:'Компас',i:'🧭',lv:5,once:1,cost:{iron:4,crystal:1},d:'Трофей путешественника'},
+pick4:{n:'Золотая кирка',i:'⛏️',lv:6,once:1,tier:['pick',4],cost:{gold:3,stick:2},d:'Шанс 60% на лишний ресурс'},
+sword4:{n:'Золотой меч',i:'🗡️',lv:6,once:1,tier:['sword',4],cost:{gold:2,stick:1},d:'Шанс 60% на лишний изумруд'},
+gloves:{n:'Перчатки',i:'🧤',lv:6,once:1,armor:1,cost:{iron:3,gold:2},d:'+2 опыта за каждый верный ответ'},
+map:{n:'Карта',i:'🗺️',lv:6,once:1,cost:{scroll:1,iron:2,gold:1},d:'Трофей'},
+bell:{n:'Колокол',i:'🔔',lv:7,once:1,cost:{gold:4},d:'Трофей'},
+telescope:{n:'Подзорная труба',i:'🔭',lv:7,once:1,cost:{iron:3,gold:2,crystal:1},d:'Трофей'},
+pick5:{n:'Кристальная кирка',i:'⛏️',lv:8,once:1,tier:['pick',5],cost:{crystal:3,stick:2},d:'Шанс 80% на лишний ресурс'},
+sword5:{n:'Кристальный меч',i:'🗡️',lv:8,once:1,tier:['sword',5],cost:{crystal:2,stick:1},d:'Шанс 80% на лишний изумруд'},
+staff:{n:'Посох мудреца',i:'🪄',lv:8,once:1,cost:{stick:3,crystal:3},d:'Трофей мудреца'},
+crown:{n:'Корона',i:'👑',lv:9,once:1,cost:{gold:6,crystal:2},d:'Трофей короля грамоты'},
+cup:{n:'Кубок Грамотея',i:'🏆',lv:10,once:1,cost:{gold:8,crystal:4},d:'Главный трофей'}
+};
+const TIER_TINT={1:'#a0703f',2:'#8d8d8d',3:'#e2b996',4:'#ffd84a',5:'#5ff0e8'};
+const PETS=[
+{id:'cat',i:'🐱',n:'Кот Корешок',cost:3,w:['bezud','parn','nepr'],d:'+1 изумруд в мирах про корень'},
+{id:'owl',i:'🦉',n:'Сова Запятая',cost:4,w:['zap','prist'],d:'+1 изумруд в Запятых и Приставках'},
+{id:'fox',i:'🦊',n:'Лис Словарик',cost:5,w:['slovar','udv'],d:'+1 изумруд в Словарном сундуке и Двойных'},
+{id:'dog',i:'🐶',n:'Пёс Диктант',cost:6,w:['dikt','pamyat'],d:'+1 изумруд в Диктанте и Письме по памяти'},
+{id:'turtle',i:'🐢',n:'Черепаха Ударение',cost:6,w:['razd','bezud'],d:'+1 изумруд в Ъ/Ь и Безударных'},
+{id:'rabbit',i:'🐰',n:'Зайка Буквица',cost:8,w:['nb'],d:'+1 изумруд в Тетради ошибок'},
+{id:'dragon',i:'🐉',n:'Дракончик Грамотей',cost:15,w:['*'],d:'+1 изумруд везде'}
+];
+const BUILD=[
+{id:'tent',i:'⛺',n:'Палатка',cost:{wood:8},d:1},
+{id:'garden',i:'🥕',n:'Огород',cost:{wood:6,paper:2},d:2},
+{id:'fountain',i:'⛲',n:'Фонтан',cost:{stone:10},d:2},
+{id:'house',i:'🏠',n:'Домик',cost:{wood:15,stone:10},d:3},
+{id:'farm',i:'🌾',n:'Поле',cost:{wood:10,coal:3},d:3},
+{id:'forge',i:'⚒️',n:'Кузница',cost:{stone:10,iron:5},d:4},
+{id:'school',i:'🏫',n:'Школа',cost:{stone:15,paper:10},d:5},
+{id:'library',i:'📚',n:'Библиотека',cost:{paper:20,wood:10},d:5},
+{id:'tower',i:'🗼',n:'Башня',cost:{stone:15,gold:5},d:6},
+{id:'castle',i:'🏰',n:'Замок',cost:{stone:30,gold:10,crystal:5},d:10}
+];
+const THEMES=[
+{id:'meadow',n:'Луг',cost:0,c:'#8fd3ff'},{id:'snow',n:'Снега',cost:2,c:'#b9d7ee'},{id:'sea',n:'Море',cost:2,c:'#2aa3c9'},
+{id:'sunset',n:'Закат',cost:3,c:'#ff9a62'},{id:'desert',n:'Пустыня',cost:3,c:'#f3c97a'},{id:'cave',n:'Пещера',cost:4,c:'#2f333d'},{id:'night',n:'Ночь',cost:4,c:'#101a3a'}
+];
+const QUESTS=[
+{id:'task',n:'Реши 15 заданий',g:15},{id:'hike',n:'Пройди 2 похода',g:2},{id:'dict',n:'Повтори 5 словарных слов',g:5},
+{id:'dikt',n:'Пройди поход «Диктант»',g:1},{id:'mem',n:'Напиши текст по памяти',g:1},{id:'craft',n:'Создай предмет на верстаке',g:1},
+{id:'fix',n:'Исправь 2 ошибки из тетради',g:2},{id:'zap',n:'Расставь запятые в 5 предложениях',g:5},
+{id:'why',n:'Прочитай 3 объяснения «Почему так?»',g:3},{id:'clean',n:'Пройди поход без ошибок',g:1}
+];
+const PET_LINES=['Ты молодец! Давай ещё один поход?','Сначала найди «опасное место», потом проверяй.','Безударную гласную ставь под ударение!','Перед «а» и «но» — запятая!','Словарные слова лучше повторять каждый день.','Ошибка — это подсказка, что повторить.','Нажми «Почему так?» — там секрет правила.','Собери ресурсы и построй что-нибудь в деревне!'];
+
+/* ============ СОСТОЯНИЕ ============ */
+const KEY='gramotey-v1';
+const DEF={v:1,em:0,dia:0,xp:0,lvl:1,res:{wood:0,stone:0,paper:0,coal:0,iron:0,gold:0,crystal:0},inv:{},worlds:{},stats:{},nb:{},sr:{},ach:{},
+pets:[],pet:null,themes:['meadow'],theme:'meadow',build:{},streak:0,bestStreak:0,boost:false,
+days:{last:'',count:0,best:0,list:[]},daily:{date:'',q:[],p:{},claimed:false},
+cnt:{tasks:0,correct:0,hikes:0,clean:0,explain:0,crafts:0,fixed:0,spent:0,dictClean:0,memClean:0,memTexts:0},sound:true,readRules:{},memIdx:0};
+function merge(d,s){if(!s||typeof s!=='object')return JSON.parse(JSON.stringify(d));const o=Array.isArray(d)?[]:{};for(const k in d){o[k]=(d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k]))?merge(d[k],s[k]):(s[k]!==undefined?s[k]:JSON.parse(JSON.stringify(d[k])))}for(const k in s)if(!(k in o))o[k]=s[k];return o}
+let S;try{S=merge(DEF,JSON.parse(localStorage.getItem(KEY)))}catch(e){S=merge(DEF,null)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* ============ УТИЛИТЫ ============ */
+const $=s=>document.querySelector(s);
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const dayN=s=>Math.round(new Date(s+'T12:00:00').getTime()/864e5);
+const dayS=n=>{const d=new Date(n*864e5);return d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0')};
+const norm=s=>s.toLowerCase().replace(/ё/g,'е');
+const normW=s=>norm(s).replace(/[^а-я\- ]/g,'').replace(/\s+/g,' ').trim();
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function gem(c1,c2,s=17){return `<svg class="gem" width="${s}" height="${s}" viewBox="0 0 10 10"><polygon points="5,0 10,4 5,10 0,4" fill="${c1}" stroke="#1a1a1a" stroke-width=".6"/><polygon points="5,0 7.5,4 5,10 2.5,4" fill="${c2}"/><polygon points="0,4 10,4 5,0" fill="#fff" opacity=".3"/></svg>`}
+const EM=gem('#1fa846','#3ee070'),DI=gem('#2fc9e8','#a6f6ff');
+const BLK={};
+function blk(id,size=20){const k=id+size;if(BLK[k])return BLK[k];const c=RES[id].c;let seed=0;for(const ch of id)seed=seed*31+ch.charCodeAt(0);seed%=233280;const r=()=>{seed=(seed*9301+49297)%233280;return seed/233280};let o='';
+for(let y=0;y<8;y++)for(let x=0;x<8;x++){let col=r()<.5?c[0]:c[1];
+if(id==='wood'){col=(x===2||x===5)?c[1]:c[0];if(r()<.12)col=c[2]}
+else if(id==='paper'){col=c[0];if(y%3===1&&x>0&&x<7)col=c[2];if(x===0||y===0)col=c[1]}
+else if(id!=='stone'&&r()<.25)col=c[2];
+o+=`<rect x="${x}" y="${y}" width="1.05" height="1.05" fill="${col}"/>`}
+return BLK[k]=`<svg class="blk" width="${size}" height="${size}" viewBox="0 0 8 8" shape-rendering="crispEdges">${o}</svg>`}
+function costHtml(cost,check=true){return Object.entries(cost).map(([k,v])=>{const have=RES[k]?S.res[k]:(S.inv[k]||0);const ico=RES[k]?blk(k,16):ITEMS[k].i;return `<span class="${check&&have<v?'no':''}">${ico} ${v}</span>`}).join('')}
+function canPay(cost){return Object.entries(cost).every(([k,v])=>(RES[k]?S.res[k]:(S.inv[k]||0))>=v)}
+function pay(cost){for(const[k,v]of Object.entries(cost)){if(RES[k])S.res[k]-=v;else S.inv[k]-=v}}
+function itemIcon(id){const it=ITEMS[id];if(it.tier)return `<span style="filter:drop-shadow(0 0 0 ${TIER_TINT[it.tier[1]]})">${it.i}</span><small style="background:${TIER_TINT[it.tier[1]]}">${it.tier[1]}</small>`;return it.i}
+const bestTier=t=>{let b=0;for(const id in ITEMS){const it=ITEMS[id];if(it.tier&&it.tier[0]===t&&S.inv[id])b=Math.max(b,it.tier[1])}return b};
+const armorCount=()=>Object.keys(ITEMS).filter(id=>ITEMS[id].armor&&S.inv[id]).length;
+
+/* ============ ЗВУК И РЕЧЬ ============ */
+let AC;function beep(f,d=.08,type='square',vol=.05,delay=0){if(!S.sound)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;o.connect(g);g.connect(AC.destination);const t=AC.currentTime+delay;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.start(t);o.stop(t+d+.03)}catch(e){}}
+const SFX={ok(){beep(660,.08);beep(990,.12,'square',.05,.08)},bad(){beep(196,.2,'sawtooth',.04)},coin(){beep(1250,.05);beep(1650,.08,'square',.04,.05)},lvl(){[523,659,784,1047].forEach((f,i)=>beep(f,.13,'square',.05,i*.11))},click(){beep(440,.03,'square',.025)}};
+let ruVoice=null;const hasTTS='speechSynthesis' in window;
+function loadVoices(){if(!hasTTS)return;const vs=speechSynthesis.getVoices();ruVoice=vs.find(v=>/^ru/i.test(v.lang)&&/Milena|Katya|Yuri|Google/i.test(v.name))||vs.find(v=>/^ru/i.test(v.lang))||null}
+if(hasTTS){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
+function speak(t,slow){if(!hasTTS)return false;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ru-RU';if(ruVoice)u.voice=ruVoice;u.rate=slow?.55:.85;speechSynthesis.speak(u);return true}catch(e){return false}}
+
+/* ============ СЛОВАРЬ ============ */
+const VOW='аеёиоуыэюяАЕЁИОУЫЭЮЯ';
+function parseDict(w){let plain='';const st=new Set();for(const ch of w){if(ch==='´')st.add(plain.length-1);else plain+=ch}if(!st.size){const i=norm(plain).indexOf('ё')>=0?[...plain].findIndex(c=>/[ёЁ]/.test(c)):[...plain].findIndex(c=>VOW.includes(c));if(i>=0)st.add(i)}return{plain,st}}
+const DICT=DICT_ALL.map(w=>{const p=parseDict(w);const cand=[];const L=[...p.plain];
+L.forEach((ch,i)=>{if('оаеияОАЕИЯ'.includes(ch)&&!p.st.has(i))cand.push({i,len:1,ans:ch,alt:{'о':'а','а':'о','е':'и','и':'е','я':'е','О':'А','А':'О','Е':'И','И':'Е','Я':'Е'}[ch]})});
+L.forEach((ch,i)=>{if(i<L.length-1&&ch===L[i+1]&&!VOW.includes(ch)&&/[а-я]/i.test(ch))cand.push({i,len:2,ans:ch+ch,alt:ch,dbl:1})});
+return{raw:w,plain:p.plain,st:p.st,cand,new4:DICT_NEW4.has(p.plain)}});
+const DICTMAP={};DICT.forEach(d=>DICTMAP[d.plain]=d);
+function dictHtml(d,marks){return [...d.plain].map((ch,i)=>{let s=ch+(d.st.has(i)?'́':'');return marks&&marks.has(i)?`<b class="trap">${s}</b>`:s}).join('')}
+function dictTraps(d){const m=new Set();d.cand.forEach(c=>{m.add(c.i);if(c.len===2)m.add(c.i+1)});return m}
+function dictExpl(d,c){const m=c?new Set(c.len===2?[c.i,c.i+1]:[c.i]):dictTraps(d);const sv=[...d.st].map(i=>d.plain[i]).join('», «');
+return `<p><b>Словарное слово</b> — правилом его не проверить, написание нужно запомнить.</p><p class="big">${dictHtml(d,m)}</p><p>Ударение падает на «${sv}».${c?` Трудное место: <b>${c.ans}</b>${c.dbl?' — две одинаковые буквы':''}.`:m.size?' Трудные места выделены синим.':''}</p><p class="tip">Совет: произнеси слово по слогам так, как оно пишется, и представь его написанным.</p>`}
+
+/* ============ ЗАДАНИЯ ============ */
+const VPAIR={'о':'а','а':'о','е':'и','и':'е','я':'е'};
+const stHtml=w=>{let done=false;return w.replace(/[А-ЯЁ]/g,m=>{if(done)return m;done=true;return `<b class="st">${m.toLowerCase()}́</b>`})};
+const fillH=(g,a,cls='fill')=>g.replace('_',`<b class="${cls}">${a}</b>`);
+const gapH=g=>g.replace('_','<span class="gap">?</span>');
+function base(key){try{return base0(key)}catch(e){return null}}
+function base0(key){const p=key.indexOf(':');const c=key.slice(0,p),id=key.slice(p+1);
+if(c==='bezud'){const[g,a,ch,d]=BEZUD[id];const chk=ch.toLowerCase();return{key,cat:c,gap:g,ans:a,opts:[a,VPAIR[a]],full:g.replace('_',a),diff:d,chk,
+ hint:`Измени слово, чтобы гласный стал ударным. Проверь словом «${chk}».`,
+ expl:`<p>В корне — <b>безударный гласный</b>. Его надо проверить ударением.</p><p>Проверочное слово: <span class="chk">${stHtml(ch)}</span> — здесь гласный под ударением.</p>${/Ё/.test(ch)?'<p>Под ударением стоит <b>ё</b>, а без ударения на её месте пишем <b>е</b>.</p>':''}<p>Пишем: <span class="ans">${fillH(g,a)}</span></p>`}}
+if(c==='parn'){const[g,a,alt,ch,d]=PARN[id];return{key,cat:c,gap:g,ans:a,opts:[a,alt],full:g.replace('_',a),diff:d,chk:ch,
+ hint:`Измени слово так, чтобы после согласного шёл гласный. Например: «${ch}».`,
+ expl:`<p><b>Парный согласный</b> (${a}–${alt}) на конце слова или перед другим согласным звучит неясно — легко ошибиться.</p><p>Проверяем: меняем слово так, чтобы после согласного шёл гласный: <span class="chk">${ch.replace(a,`<b class="st">${a}</b>`)}</span> — теперь звук слышно ясно.</p><p>Пишем: <span class="ans">${fillH(g,a)}</span></p>`}}
+if(c==='nepr'){const[g,a,t,ch,d]=NEPR[id];const full=g.replace('_',a);return{key,cat:c,gap:g,ans:a||'—',opts:a?[a,'—']:['—',t],full,diff:d,chk:ch,
+ hint:`Подбери однокоренное слово: «${ch}». Слышен ли там согласный?`,
+ expl:a?`<p>В слове есть <b>непроизносимый согласный</b>: мы его не слышим, но пишем.</p><p>Проверяем однокоренным словом: <span class="chk">${ch.replace(a,`<b class="st">${a}</b>`)}</span> — здесь звук [${a}] слышно.</p><p>Пишем: <span class="ans">${fillH(g,a)}</span></p>`
+ :`<p>Здесь <b>нет</b> непроизносимого согласного — лишнюю букву не вставляем!</p><p>Проверяем: <span class="chk">${ch}</span> — звука [${t}] нет и тут.</p><p>Пишем: <span class="ans">${full}</span></p>`}}
+if(c==='razd'){const[g,a,pf]=RAZD[id];const nx=g[g.indexOf('_')+1];const full=g.replace('_',a);let ex;
+ if(pf.startsWith('!'))ex=`<p>${pf.slice(1)}</p><p>Пишем: <span class="ans">${fillH(g,a)}</span></p>`;
+ else if(a==='ъ')ex=`<p>Перед буквой <b>${nx}</b> стоит приставка <b>${pf}-</b>, она оканчивается на согласный.</p><p>После такой приставки перед <b>е, ё, ю, я</b> пишется <b>разделительный Ъ</b>: <span class="ans">${fillH(g,a)}</span></p>`;
+ else ex=`<p>Перед буквой <b>${nx}</b> нет приставки — разделять нужно внутри слова (в корне или перед окончанием).</p><p>Тогда пишется <b>разделительный Ь</b>: <span class="ans">${fillH(g,a)}</span></p>`;
+ return{key,cat:c,gap:g,ans:a,opts:['ъ','ь'],full,diff:2,hint:'Есть ли перед е, ё, ю, я приставка, которая кончается на согласный?',expl:ex}}
+if(c==='udv'){const[g,a,alt,d,note]=UDV[id];const full=g.replace('_',a);const dbl=a.length===2;
+ return{key,cat:c,gap:g,ans:a,opts:[a,alt],full,diff:d,hint:dbl?'Вспомни, как слово выглядит в словаре. Одна буква или две?':'Вспомни, как слово выглядит в словаре.',
+ expl:note?`<p>${note}</p><p>Пишем: <span class="ans">${fillH(g,a)}</span></p>`:dbl?`<p>В слове <span class="ans">${fillH(g,a)}</span> пишется <b>двойная «${a[0]}»</b>.</p><p>Правилом это не проверить — слово <b>словарное</b>, его надо запомнить. Произнеси по слогам, как пишется: ${full.replace(a,a[0]+'-'+a[0])}.</p>`:`<p>В слове <span class="ans">${fillH(g,a)}</span> пишется <b>одна</b> «${a}». Двойной здесь нет — это слово надо запомнить.</p>`}}
+if(c==='dict'){const d=DICTMAP[id];return{key,cat:'slovar',dict:d,full:d.plain,diff:1,hint:`Ударение: ${dictHtml(d)}`,expl:dictExpl(d)}}
+if(c==='prist'){const s=PRIST[id];const parts=[];s.split(' ').forEach(tok=>{const m=tok.match(/^\{([^|]+)\|([pg])(?::([^}]*))?\}(.*)$/);if(m)parts.push({x:m[1],t:m[2],f:m[3],rest:m[4]});else parts.push({plain:tok})});
+ const full=parts.map(p=>p.plain||(p.t==='p'?p.x+p.rest:p.x+' '+p.rest)).join(' ');
+ const ex=parts.filter(p=>!p.plain).map(p=>p.t==='p'?`<p><b>${p.x}</b> в слове «${p.x}${p.rest}» — <b>приставка</b>, часть слова-действия. Приставки пишем <b>слитно</b>: <span class="ans">${p.x}${p.rest}</span></p>`:`<p><b>${p.x}</b> перед словом «${p.rest}» — <b>предлог</b>. Между ним и словом можно вставить другое слово: ${p.x} <i>(${p.f})</i> ${p.rest}. Предлоги пишем <b>раздельно</b>: <span class="ans">${p.x} ${p.rest}</span></p>`).join('');
+ return{key,cat:c,parts,full,diff:2,hint:'Попробуй вставить слово между частями. Получилось — пиши раздельно.',expl:ex}}
+if(c==='zap'){const[s,e]=ZAP[id];const toks=s.split(' ');const ans=new Set();toks.forEach((t,i)=>{if(t.endsWith(','))ans.add(i)});
+ return{key,cat:c,toks:toks.map(t=>t.replace(/,$/,'')),zans:ans,full:s,diff:2,hint:'Найди однородные члены или две основы. Есть ли союзы а, но? Одиночное и?',expl:`<p>${e}</p><p class="ans" style="display:inline-block">${s}</p>`}}
+return null}
+const BANKS={bezud:BEZUD,parn:PARN,nepr:NEPR,razd:RAZD,udv:UDV,prist:PRIST,zap:ZAP};
+const keysOf=c=>c==='slovar'?DICT.map(d=>'dict:'+d.plain):BANKS[c].map((_,i)=>c+':'+i);
+const WORDKEYS=['bezud','parn','nepr','razd','udv'].flatMap(keysOf);
+const ALLKEYS={};[...WORDKEYS,...keysOf('slovar')].forEach(k=>{const b=base(k);ALLKEYS[normW(b.full)]=k});
+
+function makeTask(key,fmt){const b=base(key);if(!b)return null;const t=Object.assign({},b,{fmt});
+if(b.cat==='prist'){t.fmt='prist'}else if(b.cat==='zap'){t.fmt='zap'}
+else if(b.dict){const d=b.dict;
+ if(fmt==='choice'&&!d.cand.length)t.fmt='type';
+ if(fmt==='build'&&(/[ (-]/.test(d.plain)||d.plain.length<3||d.plain.length>11))t.fmt=d.cand.length?'choice':'type';
+ if(t.fmt==='choice'){const c=pick(d.cand.filter(x=>!x.dbl).length&&Math.random()<.75?d.cand.filter(x=>!x.dbl):d.cand);const L=[...d.plain];L.splice(c.i,c.len,'_');t.gap=L.join('');t.ans=c.ans;t.opts=[c.ans,c.alt];t.expl=dictExpl(d,c);t.hint=`Ударение: ${dictHtml(d)}`}
+ if(t.fmt==='type'&&d.cand.length){const c=pick(d.cand);const L=[...d.plain];L.splice(c.i,c.len,'_');t.hint=`Трудное место: ${gapH(L.join(''))}`}
+}
+else{if(fmt==='type')t.hint=`Трудное место: ${gapH(b.gap)}`+(b.chk?` · проверь словом «${b.chk}»`:'');
+ if(fmt==='check'){if(!b.chk){t.fmt='choice'}else{const others=shuffle(BANKS[b.cat].map((_,i)=>base(b.cat+':'+i).chk).filter(x=>x&&x!==b.chk&&x[0]!==b.chk[0]));t.copts=[b.chk,others[0],others[1]]}}}
+t.diff=Math.max(b.diff||1,{choice:1,check:2,build:2,type:3,zap:2,prist:2}[t.fmt]||1);
+return t}
+
+function fmtFor(wid,lvl){const r=Math.random();const T={1:[1,0,0],2:[.7,.3,0],3:[.4,.4,.2],4:[.3,.4,.3],5:[.2,.4,.4]}[lvl]||[1,0,0];
+if(['bezud','parn','nepr'].includes(wid))return r<T[0]?'choice':r<T[0]+T[1]?'check':'type';
+if(['razd','udv'].includes(wid))return r<(lvl>=5?.5:lvl>=3?.7:1)?'choice':'type';
+if(wid==='slovar')return r<T[0]?'choice':r<T[0]+(lvl>=2?.3:0)+(lvl===2?.1:0)?'build':'type';
+if(wid==='dikt')return 'type';return 'choice'}
+function weightedPick(keys,n){const sc=keys.map(k=>{const st=S.nb[k]?4:1;return{k,w:Math.random()*st}});sc.sort((a,b)=>b.w-a.w);return sc.slice(0,n).map(x=>x.k)}
+function hikeKeys(wid,lvl){
+if(wid==='slovar'){const td=dayN(today());const due=DICT.filter(d=>S.sr[d.plain]&&S.sr[d.plain].due<=td).sort((a,b)=>S.sr[a.plain].due-S.sr[b.plain].due).map(d=>'dict:'+d.plain);
+ const fresh=shuffle(DICT.filter(d=>!S.sr[d.plain])).sort((a,b)=>(b.new4?1:0)-(a.new4?1:0)).map(d=>'dict:'+d.plain);
+ let ks=due.slice(0,7);ks=ks.concat(fresh.slice(0,10-ks.length));if(ks.length<10)ks=ks.concat(shuffle(DICT.map(d=>'dict:'+d.plain).filter(k=>!ks.includes(k))).slice(0,10-ks.length));return shuffle(ks)}
+if(wid==='dikt'){const ks=weightedPick(WORDKEYS,6).concat(shuffle(keysOf('slovar')).slice(0,4));return shuffle(ks)}
+if(wid==='nb'){return Object.keys(S.nb).sort((a,b)=>S.nb[b].n-S.nb[a].n).slice(0,10)}
+const all=keysOf(wid);const maxD=lvl<=1?1:lvl===2?2:3;let pool=all.filter(k=>{const b=base(k);return(b.diff||1)<=maxD});if(pool.length<10)pool=all;return weightedPick(pool,10)}
+
+/* ============ ДНИ, ЗАДАНИЯ ДНЯ ============ */
+function seeded(str){let h=0;for(const c of str)h=(h*131+c.charCodeAt(0))%1e9;return()=>{h=(h*9301+49297)%233280;return h/233280}}
+function ensureDaily(){const td=today();if(S.daily.date===td)return;const r=seeded(td);let pool=QUESTS.filter(q=>q.id!=='task'&&(q.id!=='fix'||Object.keys(S.nb).length>=2));const q=['task'];while(q.length<3){const x=pool.splice(Math.floor(r()*pool.length),1)[0];q.push(x.id)}
+S.daily={date:td,q,p:{},claimed:false};if(S.inv.lantern){S.inv.torch=(S.inv.torch||0)+1;setTimeout(()=>toast('🏮','Фонарь подарил факел!'),800)}save()}
+function quest(id,n=1){if(!S.daily.q.includes(id))return;const g=QUESTS.find(q=>q.id===id).g;const was=S.daily.p[id]||0;S.daily.p[id]=Math.min(g,was+n);if(was<g&&S.daily.p[id]>=g)toast('✅','Задание дня: '+QUESTS.find(q=>q.id===id).n)}
+const questsDone=()=>S.daily.q.every(id=>(S.daily.p[id]||0)>=QUESTS.find(q=>q.id===id).g);
+function markActive(){const td=today();if(S.days.last===td)return;const y=dayS(dayN(td)-1);S.days.count=S.days.last===y?S.days.count+1:1;S.days.last=td;S.days.best=Math.max(S.days.best,S.days.count);S.days.list.push(td);S.days.list=S.days.list.slice(-60);
+const bonus={3:1,7:2,14:3,30:5}[S.days.count];if(bonus){S.dia+=bonus;toast('📅',`${S.days.count} дней подряд! +${bonus}`+DI)}}
+
+/* ============ НАГРАДЫ ============ */
+const need=l=>100+50*(l-1);
+const TITLES=[[1,'Новичок'],[3,'Ученик'],[5,'Писарь'],[7,'Книжник'],[9,'Знаток'],[12,'Грамотей'],[15,'Мастер слова']];
+const title=l=>TITLES.filter(t=>l>=t[0]).pop()[1];
+function addXP(n){S.xp+=n;while(S.xp>=need(S.lvl)){S.xp-=need(S.lvl);S.lvl++;S.dia++;levelUp(`Уровень ${S.lvl}!`,`Звание: ${title(S.lvl)}`,'⭐','+1 '+DI)}}
+function addRes(id,n=1){S.res[id]=(S.res[id]||0)+n}
+function dropRes(diff){const out={};const add=(k,n=1)=>out[k]=(out[k]||0)+n;
+if(diff<=1)add(pick(['wood','wood','stone','paper']));else if(diff===2){add(pick(['coal','iron','iron']));if(Math.random()<.5)add(pick(['stone','paper','wood']))}else{add(Math.random()<.3?'crystal':'gold');add('iron')}
+const pt=bestTier('pick');if(pt&&Math.random()<pt*.15)add(pick(Object.keys(out)));for(const k in out)addRes(k,out[k]);return out}
+function petBonus(cat){if(!S.pet)return 0;const p=PETS.find(x=>x.id===S.pet);return p&&(p.w.includes('*')||p.w.includes(cat))?1:0}
+
+/* ============ ДОСТИЖЕНИЯ ============ */
+const learned=()=>Object.values(S.sr).filter(x=>x.b>=3).length;
+const ACH=[
+['first','Первое слово','Реши первое задание','✏️',s=>s.cnt.correct>=1],['c50','Полсотни','50 верных ответов','🎯',s=>s.cnt.correct>=50],
+['c200','Двести!','200 верных ответов','🏹',s=>s.cnt.correct>=200],['c500','Пятьсот','500 верных ответов','🚀',s=>s.cnt.correct>=500],['c1000','Тысяча','1000 верных ответов','🌟',s=>s.cnt.correct>=1000],
+['h1','Первый поход','Пройди первый поход','🥾',s=>s.cnt.hikes>=1],['h25','Путешественник','25 походов','🧭',s=>s.cnt.hikes>=25],['h100','Странник','100 походов','🗺️',s=>s.cnt.hikes>=100],
+['cl1','Чистая работа','Поход без единой ошибки','✨',s=>s.cnt.clean>=1],['cl10','Безупречный','10 походов без ошибок','💠',s=>s.cnt.clean>=10],
+['s5','Пять подряд','5 верных ответов подряд','🔥',s=>s.bestStreak>=5],['s20','Огненная серия','20 подряд','☄️',s=>s.bestStreak>=20],['s50','Неудержимый','50 подряд','⚡',s=>s.bestStreak>=50],
+['d3','Три дня','Занимайся 3 дня подряд','📅',s=>s.days.best>=3],['d7','Неделя','7 дней подряд','🗓️',s=>s.days.best>=7],['d14','Две недели','14 дней подряд','🏅',s=>s.days.best>=14],['d30','Месяц!','30 дней подряд','🎖️',s=>s.days.best>=30],
+...LEVEL_WORLDS.map(w=>{const W=WORLDS.find(x=>x.id===w);return['m_'+w,'Мастер: '+W.n,`5-й уровень в мире «${W.n}»`,W.i,s=>(s.worlds[w]||{}).lvl>=5]}),
+['w25','Словарик','Выучи 25 словарных слов','📗',s=>learned()>=25],['w100','Книжный червь','Выучи 100 словарных слов','📚',s=>learned()>=100],['wall','Ходячий словарь','Выучи все словарные слова','🧠',s=>learned()>=DICT.length],
+['cr1','Мастеровой','Создай первый предмет','🔨',s=>s.cnt.crafts>=1],['cr20','Ремесленник','20 раз поработай на верстаке','⚒️',s=>s.cnt.crafts>=20],
+['pk5','Кристальная кирка','Создай кристальную кирку','⛏️',s=>!!s.inv.pick5],['arm','Рыцарь грамоты','Собери всю броню','🛡️',s=>armorCount()>=4],['cup','Кубок Грамотея','Создай главный кубок','🏆',s=>!!s.inv.cup],
+['p1','Друг','Заведи питомца','🐾',s=>s.pets.length>=1],['p3','Зоопарк','3 питомца','🦁',s=>s.pets.length>=3],['pall','Все друзья','Собери всех питомцев','🎪',s=>s.pets.length>=PETS.length],
+['b1','Новосёл','Построй первую постройку','🏗️',s=>Object.keys(s.build).length>=1],['b5','Посёлок','5 построек','🏘️',s=>Object.keys(s.build).length>=5],['ball','Свой город','Все постройки','🏙️',s=>Object.keys(s.build).length>=BUILD.length],
+['why','Почемучка','Прочитай 20 объяснений','❓',s=>s.cnt.explain>=20],['fix','Работа над ошибками','Исправь 10 ошибок из тетради','📓',s=>s.cnt.fixed>=10],
+['dk','Диктант на «5»','Диктант без ошибок','🎧',s=>s.cnt.dictClean>=1],['mm1','Отличная память','Текст по памяти без ошибок','🧩',s=>s.cnt.memClean>=1],['mm10','Писатель','10 текстов по памяти','✒️',s=>s.cnt.memTexts>=10],
+['rich','Богач','Накопи 100 изумрудов','💰',s=>s.em>=100],['spend','Щедрая душа','Потрать 15 алмазов','🎁',s=>s.cnt.spent>=15],
+['rules','Знаток правил','Прочитай все правила','📖',s=>Object.keys(s.readRules).length>=Object.keys(RULES).length],['lv10','Десятый уровень','Достигни 10 уровня','🔟',s=>s.lvl>=10]
+];
+function checkAch(){for(const a of ACH){if(!S.ach[a[0]]&&a[4](S)){S.ach[a[0]]=today();S.dia++;toast(a[3],`Достижение: ${a[1]}! +1 `+DI)}}}
+
+/* ============ UI: ВЕРХ, ВКЛАДКИ ============ */
+function renderTop(){const n=need(S.lvl);$('#top').innerHTML=`<span class="lv">${S.lvl}</span><div class="xpw"><div class="ttl">${title(S.lvl)}</div><div class="bar"><i style="width:${Math.min(100,S.xp/n*100)}%"></i></div></div><span class="cur">${EM} ${S.em}</span><span class="cur">${DI} ${S.dia}</span><button id="snd" aria-label="Звук">${S.sound?'🔊':'🔇'}</button>`;
+$('#snd').onclick=()=>{S.sound=!S.sound;save();renderTop()};document.body.className='th-'+S.theme}
+const TABS=[['home','🏡','Главная'],['worlds','🗺️','Миры'],['craft','🛠️','Верстак'],['shop','💎','Лавка'],['stats','🏆','Успехи']];
+let tab='home';
+function renderTabs(){const due=dueCount();$('#tabs').innerHTML=TABS.map(([id,i,n])=>`<button data-t="${id}" class="${tab===id?'on':''}"><b>${i}</b>${n}${id==='worlds'&&due?`<span class="dot">${due}</span>`:''}</button>`).join('');
+$('#tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;SFX.click();render();window.scrollTo(0,0)})}
+const dueCount=()=>{const td=dayN(today());return DICT.filter(d=>S.sr[d.plain]&&S.sr[d.plain].due<=td).length};
+function render(){ensureDaily();renderTop();renderTabs();({home:renderHome,worlds:renderWorlds,craft:renderCraft,shop:renderShop,stats:renderStats})[tab]()}
+
+/* ============ ГЛАВНАЯ ============ */
+function recommend(){let best=null,bv=2;for(const w of ['bezud','parn','nepr','razd','udv','prist','zap']){const s=S.stats[w];if(s&&s.t>=8){const a=s.r/s.t;if(a<bv&&a<.85){bv=a;best=w}}}
+if(best)return{w:best,why:`здесь больше всего ошибок (${Math.round(bv*100)}%)`};if(dueCount()>=3)return{w:'slovar',why:`${dueCount()} слов ждут повторения`};
+let lw=null,ll=9;for(const w of ['bezud','parn','nepr','razd','udv','prist','zap','slovar','dikt']){const l=(S.worlds[w]||{lvl:1}).lvl;if(l<ll){ll=l;lw=w}}return{w:lw,why:'следующий шаг'}}
+function renderHome(){const pet=S.pet?PETS.find(p=>p.id===S.pet):null;const rec=recommend();const W=WORLDS.find(w=>w.id===rec.w);const nbn=Object.keys(S.nb).length;
+const qs=S.daily.q.map(id=>{const q=QUESTS.find(x=>x.id===id);const p=S.daily.p[id]||0;return `<div class="quest ${p>=q.g?'done':''}"><span class="chk">${p>=q.g?'✓':''}</span><div class="qb"><div class="qn">${q.n}</div><div class="bar" style="height:7px;margin-top:3px;background:#e0d3b5"><i style="width:${p/q.g*100}%"></i></div></div><span class="small">${p}/${q.g}</span></div>`}).join('');
+const last7=[];for(let i=6;i>=0;i--)last7.push(S.days.list.includes(dayS(dayN(today())-i)));
+$('#view').innerHTML=`
+<div class="card"><div class="hero"><div class="pet">${pet?pet.i:'🧑‍🎓'}</div><div class="bubble">${pet?`<b>${pet.n}:</b> `:''}${pick(PET_LINES)}</div></div></div>
+<div class="card"><h2>${W.i} Продолжить</h2><div class="muted">Совет: <b>${W.n}</b> — ${rec.why}</div><button class="btn wide mtop" id="go">В поход! ▶</button>
+${nbn?`<button class="btn wide blue mtop" id="nb">📓 Тетрадь ошибок · ${nbn}</button>`:''}</div>
+<div class="card"><h2>📋 Задания дня</h2>${qs}
+<button class="btn wide gold mtop" id="claim" ${questsDone()&&!S.daily.claimed?'':'disabled'}>${S.daily.claimed?'Сундук открыт — приходи завтра':'🎁 Открыть сундук дня'}</button></div>
+<div class="card"><h2>🔥 Дни подряд: ${S.days.count||0}</h2><div class="streak">${last7.map(x=>`<i class="${x?'on':''}"></i>`).join('')}</div><div class="muted mtop">Бонусы за 3, 7, 14 и 30 дней подряд: алмазы ${DI}</div></div>
+<div class="card"><h2>🏘️ Моя деревня</h2><div class="village">${BUILD.map(b=>S.build[b.id]?`<div class="plot" title="${b.n}">${b.i}</div>`:`<div class="plot empty">?</div>`).join('')}</div><div class="muted mtop">Стройте дома в Лавке за алмазы и ресурсы. Каждая постройка даёт +1 ${EM} в сундуке дня.</div></div>
+<div class="row"><button class="btn gray flex1" id="rules">📖 Правила</button><button class="btn gray flex1" id="set">⚙️ Настройки</button></div>`;
+$('#go').onclick=()=>openWorld(rec.w);if(nbn)$('#nb').onclick=()=>startHike('nb');$('#claim').onclick=claimDaily;$('#rules').onclick=showRules;$('#set').onclick=showSettings}
+function claimDaily(){if(!questsDone()||S.daily.claimed)return;S.daily.claimed=true;const nb=Object.keys(S.build).length;const em=5+nb;S.em+=em;S.dia+=1;const got={};const n=3+(S.inv.chest?2:0);for(let i=0;i<n;i++){const k=pick(['wood','stone','paper','coal','iron','iron','gold']);got[k]=(got[k]||0)+1;addRes(k)}
+SFX.lvl();levelUp('Сундук дня!','Задания выполнены','🎁',`+1 ${DI} +${em} ${EM} `+Object.entries(got).map(([k,v])=>blk(k,16)+v).join(' '));checkAch();save();render()}
+
+/* ============ МИРЫ ============ */
+function stars(l){return '<span class="stars">'+[1,2,3,4,5].map(i=>i<=l?'<b>★</b>':'★').join('')+'</span>'}
+function renderWorlds(){const due=dueCount();const nbn=Object.keys(S.nb).length;
+$('#view').innerHTML=`<div class="muted" style="margin:0 2px 8px;font-weight:700">Пройди поход на 8 из 10 — откроется следующий уровень мира. На уровнях выше задания сложнее и наград больше.</div>`+
+WORLDS.map(w=>{const st=S.worlds[w.id]||{lvl:1};const acc=S.stats[w.id];const extra=w.id==='slovar'?`<span class="badge ${due?'':'g'}">${due?due+' к повторению':learned()+' выучено'}</span>`:w.id==='pamyat'?`<span class="pill">текстов: ${S.cnt.memTexts}</span>`:'';
+return `<button class="card wt" data-w="${w.id}"><span class="wi">${w.i}</span><span class="flex1"><div class="wn">${w.n}</div><div class="muted">${w.d}</div><div>${w.id==='pamyat'?'':stars(st.lvl)} ${acc&&acc.t?`<span class="pill">${Math.round(acc.r/acc.t*100)}%</span>`:''} ${extra}</div></span></button>`}).join('')+
+`<button class="card wt" id="nbw"><span class="wi">📓</span><span class="flex1"><div class="wn">Тетрадь ошибок</div><div class="muted">${nbn?nbn+' слов и заданий. Реши правильно дважды — и оно исчезнет':'Пока пусто — отлично!'}</div></span></button>`;
+$('#view').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openWorld(b.dataset.w));$('#nbw').onclick=()=>{if(nbn)startHike('nb')}}
+function openWorld(wid){const W=WORLDS.find(w=>w.id===wid);const st=S.worlds[wid]||{lvl:1,hikes:0};
+modal(`<h2>${W.i} ${W.n}</h2>${wid==='pamyat'?`<p class="muted">Прочитай короткий текст, запомни его и напиши по памяти. За каждое верное слово — изумруд.</p>`:`<p>${stars(st.lvl)} <b>Уровень ${st.lvl}</b> из 5 · походов: ${st.hikes||0}</p><p class="muted">${lvlInfo(wid,st.lvl)}</p>`}
+${S.inv.potion&&!S.boost?`<button class="btn purple wide" id="pot">🧪 Выпить зелье ума (×2 изумруды) · есть ${S.inv.potion}</button><div style="height:8px"></div>`:''}${S.boost?'<p class="pill">🧪 Зелье действует: изумруды ×2</p>':''}
+<div class="row"><button class="btn gray flex1" id="rl">📖 Правило</button><button class="btn flex1" id="st">В поход ▶</button></div>`);
+$('#rl').onclick=()=>showRule(wid);$('#st').onclick=()=>{closeModal();wid==='pamyat'?startMemory():startHike(wid)};
+const p=$('#pot');if(p)p.onclick=()=>{S.inv.potion--;S.boost=true;save();toast('🧪','Зелье выпито! Следующий поход: изумруды ×2');openWorld(wid)}}
+function lvlInfo(wid,l){if(['bezud','parn','nepr'].includes(wid))return['','Вставляй буквы.','Появляются задания «подбери проверочное слово».','Добавляется диктант слов на слух.','Больше проверочных слов и диктанта.','Максимум: много диктанта и проверок.'][l];
+if(wid==='slovar')return 'Сундук сам выбирает слова: сначала те, что пора повторить, потом новые слова 4 класса. '+(l>=2?'Есть «собери слово»'+(l>=3?' и диктант.':'.'):'');
+if(wid==='dikt')return 'Слушай слово и набирай его на клавиатуре. Ошибки попадут в тетрадь с объяснением.';
+if(wid==='zap')return 'Нажимай между словами, чтобы поставить или убрать запятую.';if(wid==='prist')return 'Выбери, как написать: слитно или раздельно.';return l>=3?'Добавляется диктант слов на слух.':'Вставляй буквы.'}
+
+/* ============ ПОХОД ============ */
+let H=null;
+function startHike(wid){const lvl=wid==='nb'?3:((S.worlds[wid]||{}).lvl||1);const keys=hikeKeys(wid,lvl);if(!keys.length){toast('📓','Тетрадь ошибок пуста!');return}
+const tasks=keys.map(k=>{let f;if(wid==='nb'){const c=k.split(':')[0];f=c==='dict'?pick(['choice','type']):['bezud','parn','nepr'].includes(c)?pick(['choice','check','type']):pick(['choice','type'])}else f=fmtFor(wid,lvl);return makeTask(k,f)}).filter(Boolean);
+H={wid,lvl,tasks,i:0,score:0,em:0,res:{},boost:S.boost};S.boost=false;save();$('#task').classList.remove('hidden');document.body.style.overflow='hidden';showTask()}
+function closeTask(){if(H&&H.i<H.tasks.length&&H.tasks.some(t=>t.done)){modal(`<h2>Выйти из похода?</h2><p>Награды за решённые задания останутся, но уровень не засчитается.</p><div class="row"><button class="btn gray flex1" id="no">Остаться</button><button class="btn red flex1" id="yes">Выйти</button></div>`);$('#no').onclick=closeModal;$('#yes').onclick=()=>{closeModal();exitTask()};return}exitTask()}
+function exitTask(){H=null;M=null;$('#task').classList.add('hidden');$('#task').innerHTML='';document.body.style.overflow='';if(hasTTS)speechSynthesis.cancel();render()}
+function taskHead(){const W=WORLDS.find(w=>w.id===H.wid);const dots=H.tasks.map((t,i)=>`<i class="${t.done?(t.ok?'ok':'bad'):i===H.i?'cur':''}"></i>`).join('');
+return `<div class="oh"><button class="x" id="tx">✕</button><div class="pr"><div class="small" style="font-weight:800">${H.wid==='nb'?'📓 Тетрадь ошибок':W.i+' '+W.n} · ${Math.min(H.i+1,H.tasks.length)}/${H.tasks.length}${H.boost?' · 🧪×2':''}</div><div class="pdots">${dots}</div></div><button class="ib" id="trl">📖</button></div>`}
+function showTask(){const t=H.tasks[H.i];const el=$('#task');
+let body='',foot='';const WN={bezud:'Безударная гласная',parn:'Парный согласный',nepr:'Непроизносимый согласный',razd:'Разделительный Ъ или Ь',udv:'Одна или две буквы',slovar:'Словарное слово',prist:'Приставка или предлог',zap:'Запятые'}[t.cat];
+const hintBtn=t.fmt!=='build'?`<button class="btn sm gray" id="hint">💡 Подсказка ${S.inv.torch?`(🔥${S.inv.torch})`:'(без изумрудов)'}</button>`:'';
+if(t.fmt==='choice'){body=`<div class="prompt">Вставь пропущенную букву</div><div class="word" id="wd">${gapH(t.gap)}</div><div class="opts">${shuffle(t.opts).map(o=>`<button class="opt" data-o="${o}">${o}</button>`).join('')}</div>`}
+else if(t.fmt==='check'){body=`<div class="prompt" id="pp">Шаг 1. Какое слово — проверочное?</div><div class="word" id="wd">${gapH(t.gap)}</div><div class="opts" id="ops">${shuffle(t.copts).map(o=>`<button class="opt w" data-c="${o}">${o}</button>`).join('')}</div>`}
+else if(t.fmt==='type'){body=`<div class="prompt">Послушай и напиши слово</div><div class="say"><button class="btn blue" id="say">🔊 Слушать</button><button class="btn gray" id="slow">🐢</button></div>${hasTTS?'':'<p class="muted center">Голос недоступен — нажми «Показать на 2 секунды».</p><div class="center"><button class="btn sm gray" id="peek">👁 Показать на 2 секунды</button></div>'}<div class="typed" id="ty"><span class="caret"></span></div>`;foot='kb'}
+else if(t.fmt==='build'){t.tl=shuffle([...t.dict.plain].map((c,i)=>({c,i})));t.bt=[];body=`<div class="prompt">Собери словарное слово</div><div class="say"><button class="btn blue" id="say">🔊 Слушать</button></div><div class="typed" id="ty"><span class="caret"></span></div><div class="tiles" id="tl">${t.tl.map((x,j)=>`<button class="tile" data-j="${j}">${x.c}</button>`).join('')}</div><div class="center"><button class="btn sm gray" id="bk">⌫ Убрать букву</button></div>`}
+else if(t.fmt==='zap'){t.zon=new Set();body=`<div class="prompt">Поставь запятые там, где они нужны. Нажимай между словами.</div><div class="zs" id="zs">${t.toks.map((w,i)=>`<span>${w}</span>${i<t.toks.length-1?`<button class="zg" data-g="${i}"></button>`:''}`).join('')}</div><button class="btn wide" id="chk">Проверить</button>`}
+else if(t.fmt==='prist'){t.sel={};body=`<div class="prompt">Как правильно написать? Выбери в каждой строке.</div>`+t.parts.map((p,i)=>p.plain?'':`<div class="pt"><div class="ptl">«${p.x}» + «${p.rest}»</div><div class="opts">${shuffle([['j',p.x+p.rest],['s',p.x+' '+p.rest]]).map(([v,s])=>`<button class="opt" data-p="${i}" data-v="${v}">${s}</button>`).join('')}</div></div>`).join('')+`<button class="btn wide" id="chk">Проверить</button>`}
+el.innerHTML=taskHead()+`<div class="ob" id="ob"><div class="tcat">${WN||''}</div>${body}<div class="center mtop" id="hb">${hintBtn}</div><div id="hintx"></div><div id="fb"></div></div>${foot?'<div class="of" id="kbw"></div>':''}`;
+$('#tx').onclick=closeTask;$('#trl').onclick=()=>showRule(t.cat);
+const hb=$('#hint');if(hb)hb.onclick=()=>{if(t.done||t.hintUsed)return;t.hintUsed=true;if(S.inv.torch){S.inv.torch--;t.torch=true}$('#hintx').innerHTML=`<div class="expl">💡 ${t.hint}${t.torch?'<br><span class="small">🔥 Факел сгорел — изумруды сохранятся.</span>':'<br><span class="small">Без факела за это задание изумрудов не будет.</span>'}</div>`;hb.remove();save()};
+if(t.fmt==='choice'){el.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>{if(t.done)return;const ok=b.dataset.o===t.ans;b.classList.add(ok?'ok':'bad');el.querySelectorAll('[data-o]').forEach(x=>{if(x!==b)x.classList.add(x.dataset.o===t.ans?'ok':'dim')});$('#wd').innerHTML=fillH(t.gap,t.ans==='—'?'':t.ans,'fill ok');finish(ok,ok?'':`Ты выбрал: <b>${b.dataset.o==='—'?'ничего':b.dataset.o}</b>, а правильно: <b>${t.ans==='—'?'ничего не писать':t.ans}</b>`)})}
+if(t.fmt==='check'){el.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{if(t.done)return;const ok=b.dataset.c===t.chk;if(!ok){b.classList.add('bad');el.querySelectorAll('[data-c]').forEach(x=>{if(x.dataset.c===t.chk)x.classList.add('ok')});$('#wd').innerHTML=fillH(t.gap,t.ans==='—'?'':t.ans,'fill ok');finish(false,`«${b.dataset.c}» — не родственное слово, у него другой корень. Проверочное слово должно быть однокоренным.`);return}
+SFX.click();$('#pp').textContent='Шаг 2. Теперь вставь букву';$('#ops').innerHTML=`<div class="center" style="width:100%;margin-bottom:8px">Проверочное: <b style="font-size:20px">${t.chk}</b> ✓</div>`+shuffle(t.opts).map(o=>`<button class="opt" data-o="${o}">${o}</button>`).join('');
+el.querySelectorAll('[data-o]').forEach(bb=>bb.onclick=()=>{if(t.done)return;const ok2=bb.dataset.o===t.ans;bb.classList.add(ok2?'ok':'bad');el.querySelectorAll('[data-o]').forEach(x=>{if(x!==bb)x.classList.add(x.dataset.o===t.ans?'ok':'dim')});$('#wd').innerHTML=fillH(t.gap,t.ans==='—'?'':t.ans,'fill ok');finish(ok2,ok2?'':`Ты выбрал: <b>${bb.dataset.o==='—'?'ничего':bb.dataset.o}</b>, а правильно: <b>${t.ans==='—'?'ничего не писать':t.ans}</b>`)})})}
+if(t.fmt==='type'||t.fmt==='build'){t.typed='';const say=()=>speak(t.full);$('#say').onclick=say;const sl=$('#slow');if(sl)sl.onclick=()=>speak(t.full,true);setTimeout(say,350);
+const pk=$('#peek');if(pk)pk.onclick=()=>{if(t.peeked)return;t.peeked=true;const ty=$('#ty');const old=ty.innerHTML;ty.textContent=t.full;setTimeout(()=>{if(!t.done)drawTyped(t)},2000)}}
+if(t.fmt==='type'){keyboard($('#kbw'),{onKey:k=>{if(t.done)return;if(k==='bs')t.typed=t.typed.slice(0,-1);else if(k==='ok'){if(t.typed.trim())checkTyped(t);return}else if(k==='sp')t.typed+=' ';else if(t.typed.length<30)t.typed+=k;drawTyped(t)}})}
+if(t.fmt==='build'){el.querySelectorAll('.tile').forEach(b=>b.onclick=()=>{if(t.done||b.classList.contains('used'))return;SFX.click();b.classList.add('used');t.bt.push(+b.dataset.j);t.typed=t.bt.map(j=>t.tl[j].c).join('');drawTyped(t);if(t.bt.length===t.tl.length)checkTyped(t)});
+$('#bk').onclick=()=>{if(t.done||!t.bt.length)return;const j=t.bt.pop();el.querySelector(`.tile[data-j="${j}"]`).classList.remove('used');t.typed=t.bt.map(j=>t.tl[j].c).join('');drawTyped(t)}}
+if(t.fmt==='zap'){el.querySelectorAll('.zg').forEach(b=>b.onclick=()=>{if(t.done)return;SFX.click();const g=+b.dataset.g;if(t.zon.has(g)){t.zon.delete(g);b.classList.remove('on');b.textContent=''}else{t.zon.add(g);b.classList.add('on');b.textContent=','}});
+$('#chk').onclick=()=>{if(t.done)return;let ok=t.zon.size===t.zans.size&&[...t.zon].every(g=>t.zans.has(g));el.querySelectorAll('.zg').forEach(b=>{const g=+b.dataset.g;if(t.zans.has(g)&&!t.zon.has(g)){b.classList.add('miss');b.textContent=','}else if(!t.zans.has(g)&&t.zon.has(g))b.classList.add('wrong')});$('#chk').remove();
+finish(ok,ok?'':'<span class="small">Жёлтым — где запятая нужна, но её нет. Красным — где она лишняя.</span>')}}
+if(t.fmt==='prist'){el.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{if(t.done)return;SFX.click();el.querySelectorAll(`[data-p="${b.dataset.p}"]`).forEach(x=>x.classList.remove('ok'));b.classList.add('ok');t.sel[b.dataset.p]=b.dataset.v});
+$('#chk').onclick=()=>{if(t.done)return;const idx=t.parts.map((p,i)=>p.plain?null:i).filter(i=>i!==null);if(idx.some(i=>!t.sel[i])){toast('👆','Выбери вариант в каждой строке');return}
+let ok=true;idx.forEach(i=>{const p=t.parts[i];const right=p.t==='p'?'j':'s';el.querySelectorAll(`[data-p="${i}"]`).forEach(x=>{x.classList.remove('ok');if(x.dataset.v===right)x.classList.add('ok');else if(t.sel[i]===x.dataset.v){x.classList.add('bad');ok=false}else x.classList.add('dim')})});$('#chk').remove();finish(ok,ok?'':`Правильно: <b>${t.full}</b>`)}}
+}
+function drawTyped(t){$('#ty').innerHTML=esc(t.typed)+(t.done?'':'<span class="caret"></span>')}
+function alignOps(A,B,eq){const n=A.length,m=B.length;const D=[];for(let i=0;i<=n;i++){D.push(new Array(m+1).fill(0));D[i][0]=i}for(let j=0;j<=m;j++)D[0][j]=j;
+for(let i=1;i<=n;i++)for(let j=1;j<=m;j++)D[i][j]=Math.min(D[i-1][j]+1,D[i][j-1]+1,D[i-1][j-1]+(eq(A[i-1],B[j-1])?0:1));
+const ops=[];let i=n,j=m;while(i>0||j>0){if(i>0&&j>0&&D[i][j]===D[i-1][j-1]+(eq(A[i-1],B[j-1])?0:1)){ops.unshift({t:eq(A[i-1],B[j-1])?'eq':'sub',a:A[i-1],b:B[j-1]});i--;j--}else if(i>0&&D[i][j]===D[i-1][j]+1){ops.unshift({t:'ins',a:A[i-1]});i--}else{ops.unshift({t:'del',b:B[j-1]});j--}}return ops}
+function checkTyped(t){const ok=normW(t.typed)===normW(t.full);let info='';
+if(!ok){const ops=alignOps([...t.typed.trim()],[...t.full],(a,b)=>norm(a)===norm(b));
+info=`<div>Ты написал: <span class="diff">${ops.map(o=>o.t==='eq'?esc(o.a):o.t==='ins'||o.t==='sub'?`<span class="x">${esc(o.a)}</span>`:'').join('')}</span></div><div>Правильно: <span class="diff">${ops.map(o=>o.t==='eq'?esc(o.b):o.t==='del'||o.t==='sub'?`<span class="m">${esc(o.b)}</span>`:'').join('')}</span></div>`}
+finish(ok,info);drawTyped(t);if(t.fmt==='build'){const bk=$('#bk');if(bk)bk.remove()}}
+function finish(ok,info){const t=H.tasks[H.i];if(t.done)return;t.done=true;t.ok=ok;
+S.cnt.tasks++;quest('task');const st=S.stats[t.cat]||(S.stats[t.cat]={r:0,t:0});st.t++;if(ok)st.r++;
+if(H.wid==='dikt'){const d=S.stats.dikt||(S.stats.dikt={r:0,t:0});d.t++;if(ok)d.r++}
+let rw='';
+if(ok){S.cnt.correct++;H.score++;SFX.ok();if(t.cat==='zap')quest('zap');
+ let em=(t.hintUsed&&!t.torch)?0:t.diff;if(em){if(Math.random()<bestTier('sword')*.15)em++;em+=petBonus(H.wid);if(S.inv.pen&&(H.wid==='dikt'))em++;if(H.boost)em*=2}
+ S.em+=em;H.em+=em;const r=dropRes(t.diff);for(const k in r)H.res[k]=(H.res[k]||0)+r[k];addXP(10+armorCount()*2);
+ S.streak++;S.bestStreak=Math.max(S.bestStreak,S.streak);if(S.streak%5===0){S.dia++;toast('🔥',`${S.streak} подряд! +1 `+DI)}
+ rw=`<span class="rw">+${em} ${EM} ${Object.entries(r).map(([k,v])=>blk(k,16)+(v>1?v:'')).join('')}</span>`;
+ if(S.nb[t.key]){S.nb[t.key].ok++;if(S.nb[t.key].ok>=2){delete S.nb[t.key];S.cnt.fixed++;quest('fix');toast('📓','Ошибка исправлена и убрана из тетради!')}}}
+else{SFX.bad();if(S.inv.shield&&S.streak>=3){S.inv.shield--;toast('🛡️',`Щит спас серию: ${S.streak}!`)}else S.streak=0;const n=S.nb[t.key];S.nb[t.key]={n:(n?n.n:0)+1,ok:0}}
+if(t.dict){const sr=S.sr[t.dict.plain]||{b:0,due:0};const td=dayN(today());if(ok){sr.b=Math.min(6,sr.b+1);quest('dict')}else sr.b=0;sr.due=td+[1,1,3,7,14,30,60][sr.b];S.sr[t.dict.plain]=sr}
+const fb=$('#fb');const hb=$('#hb');if(hb)hb.innerHTML='';
+fb.innerHTML=ok?`<div class="fb ok"><div class="fbh">✅ Верно! ${rw}</div><button class="btn sm blue" id="why">❓ Почему так?</button><div class="expl hidden" id="ex">${t.expl}</div><button class="btn wide mtop" id="nx">Дальше ▶</button></div>`
+:`<div class="fb bad"><div class="fbh">❌ Ошибка — разберёмся</div>${info?`<div style="margin-bottom:6px">${info}</div>`:''}<div class="expl">${t.expl}</div><div class="small muted">Слово попало в 📓 тетрадь ошибок — мы его ещё повторим.</div><button class="btn wide mtop" id="nx">Понятно, дальше ▶</button></div>`;
+const w=$('#why');if(w)w.onclick=()=>{$('#ex').classList.remove('hidden');w.remove();S.cnt.explain++;quest('why');if(S.inv.book){S.em++;H.em++;toast('📘','Книга правил: +1 '+EM)}checkAch();save();renderTopLite()};
+$('#nx').onclick=()=>{H.i++;if(H.i>=H.tasks.length)endHike();else showTask()};
+const kb=$('#kbw');if(kb)kb.innerHTML='';
+setTimeout(()=>fb.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+checkAch();save();renderTopLite();
+const head=$('#task .pdots');if(head)head.innerHTML=H.tasks.map((x,i)=>`<i class="${x.done?(x.ok?'ok':'bad'):i===H.i?'cur':''}"></i>`).join('')}
+function renderTopLite(){renderTop()}
+function endHike(){const n=H.tasks.length;const sc=H.score;const wid=H.wid;let lvlMsg='';markActive();S.cnt.hikes++;quest('hike');
+if(wid==='dikt')quest('dikt');
+const pass=sc>=Math.ceil(n*.8);const clean=sc===n;
+if(wid!=='nb'){const w=S.worlds[wid]||(S.worlds[wid]={lvl:1,hikes:0,best:0});w.hikes++;w.best=Math.max(w.best||0,sc);
+ if(pass&&w.lvl<5){w.lvl++;S.dia++;lvlMsg=`<p style="font-size:18px;font-weight:900">⬆️ Мир открыл уровень ${w.lvl}! +1 ${DI}</p>`;SFX.lvl();confetti()}
+ else if(!pass)lvlMsg=`<p class="muted">Для нового уровня нужно 8 из 10. Посмотри разбор ошибок и попробуй ещё!</p>`;else lvlMsg='<p class="muted">Мир пройден на максимум! Возвращайся повторять.</p>'}
+if(clean){S.cnt.clean++;S.dia++;S.em+=5;H.em+=5;quest('clean');if(wid==='dikt')S.cnt.dictClean++;confetti()}
+const str=clean?'⭐⭐⭐':sc>=n*.8?'⭐⭐☆':sc>=n*.5?'⭐☆☆':'☆☆☆';
+const mis=H.tasks.filter(t=>!t.ok);
+$('#task').innerHTML=`<div class="oh"><button class="x" id="tx">✕</button><div class="pr" style="font-weight:900">Поход завершён</div></div><div class="ob"><div class="card res-big"><div class="str">${str}</div><div class="sc">${sc} / ${n}</div>${lvlMsg}
+<div class="rwlist"><span>+${H.em} ${EM}</span>${clean?`<span>+1 ${DI} чистый поход</span>`:''}${Object.entries(H.res).map(([k,v])=>`<span>${blk(k,18)} ${v}</span>`).join('')}</div></div>
+${mis.length?`<div class="card"><h2>📓 Разбор ошибок</h2><p class="muted">Нажми на слово, чтобы ещё раз прочитать объяснение.</p>${mis.map(t=>`<details class="mis"><summary>${t.cat==='zap'||t.cat==='prist'?t.full:t.full} </summary><div class="expl">${t.expl}</div></details>`).join('')}</div>`:''}
+<div class="row"><button class="btn gray flex1" id="hm">🏡 Домой</button><button class="btn flex1" id="again">Ещё поход ▶</button></div></div>`;
+$('#tx').onclick=exitTask;$('#hm').onclick=exitTask;$('#again').onclick=()=>{const w=wid;exitTask();if(w==='nb'&&!Object.keys(S.nb).length){toast('📓','Тетрадь пуста!');return}startHike(w)};
+checkAch();save();renderTop()}
+
+/* ============ КЛАВИАТУРА ============ */
+function keyboard(el,{onKey,punct}){const rows=['йцукенгшщзхъ','фывапролджэ','ячсмитьбюё'];
+el.innerHTML=`<div class="kb">${rows.map((r,i)=>`<div class="kr">${[...r].map(c=>`<button data-k="${c}">${c}</button>`).join('')}${i===2?'<button class="wide" data-k="bs">⌫</button>':''}</div>`).join('')}<div class="kr">${punct?'<button data-k=",">,</button><button data-k=".">.</button>':''}<button class="sp" data-k="sp">пробел</button><button class="ok" data-k="ok">${punct?'Готово':'Проверить'}</button></div></div>`;
+el.onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;beep(520,.02,'square',.02);onKey(b.dataset.k)}}
+
+/* ============ ПИСЬМО ПО ПАМЯТИ ============ */
+let M=null;
+function startMemory(){const idx=S.memIdx%TEXTS.length;const text=TEXTS[idx];M={idx,text,typed:'',stage:1,peeks:0,t0:Date.now()};H={wid:'pamyat',tasks:[],i:0,score:0,em:0,res:{},boost:S.boost};S.boost=false;$('#task').classList.remove('hidden');document.body.style.overflow='hidden';memStage1()}
+function memHead(t){return `<div class="oh"><button class="x" id="tx">✕</button><div class="pr" style="font-weight:900">🧠 Письмо по памяти · ${t}</div><button class="ib" id="trl">📖</button></div>`}
+function memStage1(){$('#task').innerHTML=memHead('читаем')+`<div class="ob"><div class="prompt">1. Прочитай и запомни текст</div><div class="mt">${esc(M.text)}</div>
+<div class="expl small">Найди трудные слова и проговори их по слогам. Обрати внимание на запятые и точки. Представь, как пишется каждое слово.</div><button class="btn blue wide" id="sy">🔊 Прочитать вслух</button><div style="height:10px"></div><button class="btn wide" id="ready" disabled>Я запомнил ▶</button></div>`;
+$('#tx').onclick=exitTask;$('#trl').onclick=()=>showRule('pamyat');$('#sy').onclick=()=>speak(M.text);const r=$('#ready');let s=6;r.textContent=`Читай ещё ${s} с…`;const iv=setInterval(()=>{s--;if(!$('#ready')){clearInterval(iv);return}if(s<=0){clearInterval(iv);r.disabled=false;r.textContent='Я запомнил ▶'}else r.textContent=`Читай ещё ${s} с…`},1000);r.onclick=memStage2}
+function memStage2(){M.stage=2;$('#task').innerHTML=memHead('пишем')+`<div class="ob"><div class="prompt">2. Напиши текст по памяти</div><div class="typed long" id="ty"><span class="caret"></span></div><div class="row mtop"><button class="btn sm gray" id="pk">👁 Подглядеть (${3-M.peeks})</button><span class="muted small flex1">Заглавные буквы можно не ставить.</span></div><div id="pv"></div></div><div class="of" id="kbw"></div>`;
+$('#tx').onclick=closeMem;$('#trl').onclick=()=>showRule('pamyat');
+const draw=()=>{$('#ty').innerHTML=esc(M.typed)+'<span class="caret"></span>'};draw();
+$('#pk').onclick=()=>{if(M.peeks>=3)return;M.peeks++;$('#pk').textContent=`👁 Подглядеть (${3-M.peeks})`;$('#pv').innerHTML=`<div class="mt mtop">${esc(M.text)}</div>`;setTimeout(()=>{const p=$('#pv');if(p)p.innerHTML=''},3000)};
+keyboard($('#kbw'),{punct:true,onKey:k=>{if(k==='bs')M.typed=M.typed.slice(0,-1);else if(k==='sp'){if(!M.typed.endsWith(' '))M.typed+=' '}else if(k==='ok'){if(M.typed.trim().length>3)memCheck();return}else if(M.typed.length<400){if((k===','||k==='.')&&M.typed.endsWith(' '))M.typed=M.typed.slice(0,-1);M.typed+=k;if(k===','||k==='.')M.typed+=' '}draw();const ty=$('#ty');ty.scrollTop=ty.scrollHeight}})}
+function closeMem(){modal(`<h2>Выйти?</h2><p>Текст не сохранится.</p><div class="row"><button class="btn gray flex1" id="no">Остаться</button><button class="btn red flex1" id="yes">Выйти</button></div>`);$('#no').onclick=closeModal;$('#yes').onclick=()=>{closeModal();exitTask()}}
+function memCheck(){const tok=s=>s.trim().split(/\s+/).filter(Boolean).map(w=>({raw:w,n:normW(w),p:w.replace(/[^.,!?]/g,'')})).filter(x=>x.n||x.p);
+const A=tok(M.typed),B=tok(M.text);const ops=alignOps(A,B,(a,b)=>a.n===b.n);let good=0,punct=0;const bad=[];
+const html=ops.map(o=>{if(o.t==='eq'){good++;const pOk=o.a.p===o.b.p;if(!pOk)punct++;return `<span class="w ${pOk?'ok':'miss'}" title="знак">${esc(o.b.raw)}</span>`}
+if(o.t==='sub'){bad.push(o);return `<span class="w bad">${esc(o.b.raw)}</span>`}if(o.t==='del'){bad.push(o);return `<span class="w miss">${esc(o.b.raw)}</span>`}return ''}).join(' ');
+const total=B.length;const pct=Math.round(good/total*100);let em=good*(S.inv.pen?2:1)+(petBonus('pamyat')?Math.ceil(good/3):0);if(M.peeks===0&&bad.length===0)em+=5;if(H.boost)em*=2;S.em+=em;
+addXP(good*3+armorCount());const res=dropRes(pct===100?3:2);markActive();S.cnt.hikes++;quest('hike');quest('mem');S.cnt.memTexts++;S.memIdx++;
+const st=S.stats.pamyat||(S.stats.pamyat={r:0,t:0});st.t+=total;st.r+=good;
+if(bad.length===0&&punct===0){S.cnt.memClean++;S.dia++;confetti();SFX.lvl()}else SFX.ok();
+const ex=bad.map(o=>{const w=o.b.raw.replace(/[.,!?]/g,'');const k=ALLKEYS[normW(w)];let e='';if(k){const b=base(k);e=b.expl;S.nb[k]={n:((S.nb[k]||{}).n||0)+1,ok:0}}
+return `<details class="mis" ${k?'open':''}><summary>${o.t==='del'?`Пропущено слово: <b>${esc(w)}</b>`:`Ты написал «${esc(o.a.raw)}», нужно <b>${esc(w)}</b>`}</summary>${e?`<div class="expl">${e}</div>`:o.t==='sub'?`<div class="expl"><span class="diff">${alignOps([...o.a.raw.replace(/[.,!?]/g,'')],[...w],(a,b)=>norm(a)===norm(b)).map(x=>x.t==='eq'?esc(x.b):x.t==='del'||x.t==='sub'?`<span class="m">${esc(x.b)}</span>`:'').join('')}</span><p class="small">Сравни буквы, выделенные зелёным.</p></div>`:''}</details>`}).join('');
+$('#task').innerHTML=memHead('проверка')+`<div class="ob"><div class="card res-big"><div class="str">${pct===100&&!punct?'⭐⭐⭐':pct>=90?'⭐⭐☆':pct>=70?'⭐☆☆':'☆☆☆'}</div><div class="sc">${good} / ${total}</div><div class="muted">верных слов${punct?` · знаков препинания не на месте: ${punct}`:''}</div>
+<div class="rwlist"><span>+${em} ${EM}</span>${Object.entries(res).map(([k,v])=>`<span>${blk(k,18)} ${v}</span>`).join('')}${bad.length===0&&punct===0?`<span>+1 ${DI}</span>`:''}</div></div>
+<div class="prompt">Образец</div><div class="mt">${html}</div><p class="small muted">Зелёным — верно, красным — ошибка в слове, жёлтым — пропущено слово или не тот знак после него.</p>
+${ex?`<div class="card"><h2>Разбор</h2>${ex}</div>`:''}<div class="prompt">Твой текст</div><div class="mt" style="font-size:16px">${esc(M.typed)}</div>
+<div class="row mtop"><button class="btn gray flex1" id="hm">🏡 Домой</button><button class="btn flex1" id="again">Следующий текст ▶</button></div></div>`;
+$('#tx').onclick=exitTask;$('#trl').onclick=()=>showRule('pamyat');$('#hm').onclick=exitTask;$('#again').onclick=()=>{exitTask();startMemory()};checkAch();save();renderTop()}
+
+/* ============ ВЕРСТАК ============ */
+let craftSeg='all';
+function renderCraft(){const lv=S.lvl;const ids=Object.keys(ITEMS);
+const inv=ids.filter(id=>S.inv[id]>0);
+const segs=[['all','Все'],['can','Можно создать'],['tools','Инструменты'],['troph','Трофеи']];
+const filt=id=>{const it=ITEMS[id];if(craftSeg==='can')return lv>=it.lv&&canPay(it.cost)&&!(it.once&&S.inv[id]);if(craftSeg==='tools')return !!(it.tier||it.armor||['torch','shield','potion','pen','book','lantern','chest'].includes(id));if(craftSeg==='troph')return it.d.startsWith('Трофей')||id==='cup'||id==='crown';return true};
+$('#view').innerHTML=`<div class="card"><h2>🧱 Ресурсы</h2><div class="res">${Object.keys(RES).map(k=>`<div>${blk(k,22)}<br>${S.res[k]||0}<div class="small" style="font-weight:600">${RES[k].n}</div></div>`).join('')}<div>${EM}<br>${S.em}<div class="small" style="font-weight:600">Изумруды</div></div></div><p class="muted small">Ресурсы падают за верные ответы: лёгкие задания — дерево, камень, бумага; средние — уголь и железо; трудные (диктант) — золото и кристаллы.</p></div>
+<div class="card"><h2>🎒 Мои вещи</h2>${inv.length?`<div class="res">${inv.map(id=>`<div style="font-size:24px" title="${ITEMS[id].n}">${ITEMS[id].i}<div class="small">${ITEMS[id].once?'✓':'×'+S.inv[id]}</div></div>`).join('')}</div>`:'<p class="muted">Пока пусто. Создай первую палку!</p>'}
+${S.inv.potion?`<button class="btn purple wide mtop" id="drink" ${S.boost?'disabled':''}>${S.boost?'🧪 Зелье уже действует':'🧪 Выпить зелье ума (×2 изумруды в следующем походе)'}</button>`:''}</div>
+<div class="card"><h2>🛠️ Верстак</h2><div class="seg">${segs.map(([id,n])=>`<button data-s="${id}" class="${craftSeg===id?'on':''}">${n}</button>`).join('')}</div>
+${ids.filter(filt).map(id=>{const it=ITEMS[id];const locked=lv<it.lv;const own=it.once&&S.inv[id];const ok=!locked&&!own&&canPay(it.cost);
+return `<div class="rec ${locked?'lock':''}"><div class="ri">${itemIcon(id)}</div><div class="rb"><div class="rn">${it.n}${it.make?` ×${it.make}`:''}</div><div class="rd">${it.d}</div><div class="cost">${locked?`🔒 откроется на ${it.lv} уровне`:own?'✅ уже есть':costHtml(it.cost)}</div></div>${!locked&&!own?`<button class="btn sm" data-c="${id}" ${ok?'':'disabled'}>Создать</button>`:''}</div>`}).join('')||'<p class="muted">Ничего не подходит — собери ещё ресурсов в походах!</p>'}</div>`;
+$('#view').querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{craftSeg=b.dataset.s;renderCraft()});
+$('#view').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>craft(b.dataset.c));
+const d=$('#drink');if(d)d.onclick=()=>{if(S.boost)return;S.inv.potion--;S.boost=true;save();toast('🧪','Зелье выпито!');renderCraft()}}
+function craft(id){const it=ITEMS[id];if(S.lvl<it.lv||!canPay(it.cost)||(it.once&&S.inv[id]))return;pay(it.cost);S.inv[id]=(S.inv[id]||0)+(it.make||1);S.cnt.crafts++;quest('craft');SFX.coin();toast(it.i,`Создано: ${it.n}${it.make?' ×'+it.make:''}`);checkAch();save();render()}
+
+/* ============ ЛАВКА ============ */
+let shopSeg='pets';
+function renderShop(){const segs=[['pets','🐾 Питомцы'],['village','🏘️ Деревня'],['themes','🎨 Фон'],['luck','🎁 Удача'],['trade','🔄 Обмен']];
+let body='';
+if(shopSeg==='pets')body=PETS.map(p=>{const own=S.pets.includes(p.id);return `<div class="rec"><div class="ri">${p.i}</div><div class="rb"><div class="rn">${p.n}</div><div class="rd">${p.d}</div><div class="cost">${own?(S.pet===p.id?'⭐ идёт с тобой':'✅ твой'):`${DI} ${p.cost}`}</div></div>${own?(S.pet===p.id?'':`<button class="btn sm blue" data-pa="${p.id}">Взять</button>`):`<button class="btn sm" data-pb="${p.id}" ${S.dia>=p.cost?'':'disabled'}>Купить</button>`}</div>`}).join('')+'<p class="muted small">Питомец живёт на главной и даёт бонус в своих мирах. С собой можно взять одного.</p>';
+if(shopSeg==='village')body=`<div class="village" style="margin-bottom:10px">${BUILD.map(b=>S.build[b.id]?`<div class="plot">${b.i}</div>`:'<div class="plot empty">?</div>').join('')}</div>`+BUILD.map(b=>{const own=S.build[b.id];const ok=S.dia>=b.d&&canPay(b.cost);return `<div class="rec"><div class="ri">${b.i}</div><div class="rb"><div class="rn">${b.n}</div><div class="cost">${own?'✅ построено':`<span class="${S.dia<b.d?'no':''}">${DI} ${b.d}</span>${costHtml(b.cost)}`}</div></div>${own?'':`<button class="btn sm" data-bb="${b.id}" ${ok?'':'disabled'}>Строить</button>`}</div>`}).join('')+`<p class="muted small">Каждая постройка: +1 ${EM} в сундуке дня каждый день.</p>`;
+if(shopSeg==='themes')body=THEMES.map(t=>{const own=S.themes.includes(t.id);return `<div class="rec"><div class="ri" style="background:${t.c}"></div><div class="rb"><div class="rn">${t.n}</div><div class="cost">${own?(S.theme===t.id?'⭐ включён':'✅ куплен'):`${DI} ${t.cost}`}</div></div>${own?(S.theme===t.id?'':`<button class="btn sm blue" data-ta="${t.id}">Включить</button>`):`<button class="btn sm" data-tb="${t.id}" ${S.dia>=t.cost?'':'disabled'}>Купить</button>`}</div>`}).join('');
+if(shopSeg==='luck')body=`<div class="center"><div style="font-size:70px">🎁</div><p><b>Сундук удачи</b> — внутри изумруды, ресурсы, а иногда факелы, щит или зелье!</p><button class="btn gold" id="luck" ${S.dia>=1?'':'disabled'}>Открыть за 1 ${DI}</button></div>`;
+if(shopSeg==='trade')body=`<div class="rec"><div class="ri">${DI}</div><div class="rb"><div class="rn">1 алмаз</div><div class="cost">${EM} 8</div></div><button class="btn sm" id="buyd" ${S.em>=8?'':'disabled'}>Обменять</button></div>`+Object.keys(RES).map(k=>`<div class="rec"><div class="ri">${blk(k,30)}</div><div class="rb"><div class="rn">${RES[k].n}</div><div class="cost">${EM} ${RES[k].p}</div></div><button class="btn sm" data-r="${k}" ${S.em>=RES[k].p?'':'disabled'}>Купить</button></div>`).join('');
+$('#view').innerHTML=`<div class="card"><h2>💎 Лавка</h2><p class="muted">Здесь тратятся алмазы и изумруды. Алмазы дают за новые уровни, достижения, серии и сундук дня.</p><div class="seg">${segs.map(([id,n])=>`<button data-s="${id}" class="${shopSeg===id?'on':''}">${n}</button>`).join('')}</div>${body}</div>`;
+const V=$('#view');V.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{shopSeg=b.dataset.s;renderShop()});
+V.querySelectorAll('[data-pb]').forEach(b=>b.onclick=()=>{const p=PETS.find(x=>x.id===b.dataset.pb);if(S.dia<p.cost)return;spend(p.cost);S.pets.push(p.id);S.pet=p.id;SFX.lvl();levelUp('Новый друг!',p.n,p.i,p.d)});
+V.querySelectorAll('[data-pa]').forEach(b=>b.onclick=()=>{S.pet=b.dataset.pa;done()});
+V.querySelectorAll('[data-bb]').forEach(b=>b.onclick=()=>{const x=BUILD.find(y=>y.id===b.dataset.bb);if(S.dia<x.d||!canPay(x.cost))return;spend(x.d);pay(x.cost);S.build[x.id]=today();SFX.lvl();confetti();levelUp('Построено!',x.n,x.i,`+1 ${EM} в сундуке дня`)});
+V.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>{const x=THEMES.find(y=>y.id===b.dataset.tb);if(S.dia<x.cost)return;spend(x.cost);S.themes.push(x.id);S.theme=x.id;SFX.coin();done()});
+V.querySelectorAll('[data-ta]').forEach(b=>b.onclick=()=>{S.theme=b.dataset.ta;done()});
+V.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const k=b.dataset.r;if(S.em<RES[k].p)return;S.em-=RES[k].p;addRes(k);SFX.coin();done()});
+const bd=$('#buyd');if(bd)bd.onclick=()=>{if(S.em<8)return;S.em-=8;S.dia++;SFX.coin();done()};
+const lk=$('#luck');if(lk)lk.onclick=openLuck;
+function done(){checkAch();save();render()}}
+function spend(n){S.dia-=n;S.cnt.spent+=n;checkAch();save();render()}
+function openLuck(){if(S.dia<1)return;spend(1);const r=Math.random();let txt,ico='🎁';
+if(r<.08){S.inv.potion=(S.inv.potion||0)+1;txt='Зелье ума!';ico='🧪'}else if(r<.18){S.inv.shield=(S.inv.shield||0)+1;txt='Щит!';ico='🛡️'}else if(r<.33){S.inv.torch=(S.inv.torch||0)+3;txt='3 факела!';ico='🔥'}
+else if(r<.43){S.dia+=2;txt=`Двойной алмаз: +2 ${DI}!`;ico='💎'}
+else{const em=6+rnd(10);S.em+=em;const got={};for(let i=0;i<3;i++){const k=pick(['wood','stone','paper','coal','iron','gold','crystal']);got[k]=(got[k]||0)+1;addRes(k)}txt=`+${em} ${EM} `+Object.entries(got).map(([k,v])=>blk(k,16)+v).join(' ')}
+SFX.lvl();levelUp('Сундук удачи',txt,ico,'');save();render()}
+
+/* ============ УСПЕХИ ============ */
+function renderStats(){const cats=[['bezud','Безударные гласные'],['parn','Парные согласные'],['nepr','Непроизносимые'],['razd','Ъ и Ь'],['udv','Двойные согласные'],['prist','Приставка/предлог'],['zap','Запятые'],['slovar','Словарные слова'],['dikt','Диктант (все слова)'],['pamyat','Письмо по памяти (слова)']];
+const td=dayN(today());const cal=[];for(let i=27;i>=0;i--){const d=dayS(td-i);cal.push(`<i class="${S.days.list.includes(d)?'on':''} ${i===0?'today':''}">${+d.slice(8)}</i>`)}
+const nbTop=Object.entries(S.nb).filter(([k])=>base(k)).sort((a,b)=>b[1].n-a[1].n).slice(0,12).map(([k,v])=>{const b=base(k);return `<span class="pill">${esc(b.cat==='zap'?b.full.slice(0,24)+'…':b.full)} ×${v.n}</span>`}).join(' ');
+const got=ACH.filter(a=>S.ach[a[0]]).length;
+$('#view').innerHTML=`<div class="card"><h2>📊 Точность по правилам</h2>${cats.map(([k,n])=>{const s=S.stats[k];if(!s||!s.t)return `<div class="st"><div class="l"><span>${n}</span><span class="muted">нет данных</span></div><div class="bar big"><i style="width:0"></i></div></div>`;const p=Math.round(s.r/s.t*100);return `<div class="st"><div class="l"><span>${n}</span><span>${p}% · ${s.r}/${s.t}</span></div><div class="bar big"><i class="${p<70?'low':p<85?'mid':''}" style="width:${p}%"></i></div></div>`}).join('')}</div>
+<div class="card"><h2>📦 Словарные слова</h2><p>Выучено (3+ повторения подряд): <b>${learned()}</b> из ${DICT.length} · в работе: ${Object.keys(S.sr).length} · ждут повторения: ${dueCount()}</p><div class="bar big"><i style="width:${learned()/DICT.length*100}%"></i></div></div>
+<div class="card"><h2>📓 Чаще всего ошибки</h2>${nbTop||'<p class="muted">Ошибок в тетради нет.</p>'}</div>
+<div class="card"><h2>📅 Календарь (4 недели)</h2><div class="cal">${cal.join('')}</div><p class="muted">Рекорд: ${S.days.best} дней подряд · всего походов: ${S.cnt.hikes} · верных ответов: ${S.cnt.correct}</p></div>
+<div class="card"><h2>🏆 Достижения ${got}/${ACH.length}</h2><p class="muted small">За каждое достижение +1 ${DI}</p><div class="ach">${ACH.map(a=>`<div class="${S.ach[a[0]]?'':'off'}" title="${a[2]}"><b>${a[3]}</b>${a[1]}</div>`).join('')}</div></div>`;
+$('#view').querySelectorAll('.ach div').forEach((d,i)=>d.onclick=()=>toast(ACH[i][3],`${ACH[i][1]}: ${ACH[i][2]}`))}
+
+/* ============ МОДАЛКИ, ТОСТЫ ============ */
+function modal(html){const m=$('#modal');m.innerHTML=`<div class="sheet">${html}</div>`;m.classList.remove('hidden');m.onclick=e=>{if(e.target===m)closeModal()}}
+function closeModal(){$('#modal').classList.add('hidden');$('#modal').innerHTML=''}
+function showRule(id){const r=RULES[id];if(!r){closeModal();return}let bonus='';if(!S.readRules[id]){S.readRules[id]=1;S.em++;bonus=`<p class="pill">+1 ${EM} за первое прочтение</p>`;checkAch();save();renderTop()}
+modal(`<div class="rule"><h2>📖 ${r.t}</h2>${bonus}${r.h}</div><button class="btn wide mtop" id="cm">Понятно</button>`);$('#cm').onclick=closeModal}
+function showRules(){modal(`<h2>📖 Правила</h2>${Object.entries(RULES).map(([id,r])=>`<button class="btn wide gray" style="margin-bottom:6px;justify-content:flex-start" data-r="${id}">${S.readRules[id]?'✅':'📘'} ${r.t}</button>`).join('')}<p class="muted small">За первое прочтение каждого правила — изумруд.</p>`);
+document.querySelectorAll('#modal [data-r]').forEach(b=>b.onclick=()=>showRule(b.dataset.r))}
+function showSettings(){modal(`<h2>⚙️ Настройки</h2><button class="btn wide gray" id="s1">${S.sound?'🔇 Выключить звук':'🔊 Включить звук'}</button><div style="height:8px"></div>
+<button class="btn wide blue" id="tts">🗣 Проверить голос диктанта</button><p class="muted small">${hasTTS?(ruVoice?'Голос: '+esc(ruVoice.name):'Русский голос не найден — будет голос по умолчанию.'):'Этот браузер не умеет читать вслух.'} Если не слышно — проверьте, что на iPhone выключен беззвучный режим.</p>
+<div style="height:8px"></div><button class="btn wide red" id="rst">Сбросить весь прогресс</button><p class="muted small">Прогресс хранится только на этом телефоне.</p>`);
+$('#s1').onclick=()=>{S.sound=!S.sound;save();renderTop();showSettings()};$('#tts').onclick=()=>speak('Привет! Начинаем диктант. Вокзал. Пассажир.');
+$('#rst').onclick=()=>{modal(`<h2>Точно сбросить?</h2><p>Пропадут уровни, алмазы, предметы и достижения.</p><div class="row"><button class="btn gray flex1" id="no">Нет</button><button class="btn red flex1" id="yes">Сбросить</button></div>`);$('#no').onclick=closeModal;$('#yes').onclick=()=>{S=merge(DEF,null);save();closeModal();render()}}}
+function toast(ico,txt){const T=$('#toasts');while(T.children.length>=3)T.firstChild.remove();const d=document.createElement('div');d.className='toast';d.innerHTML=`<b>${ico}</b><span>${txt}</span>`;T.appendChild(d);setTimeout(()=>d.remove(),2600)}
+function levelUp(h,sub,ico,extra){const d=document.createElement('div');d.className='lvlup';d.innerHTML=`<div class="card"><div class="big">${ico}</div><h2>${h}</h2><p style="font-weight:800">${sub}</p><p>${extra||''}</p><button class="btn wide">Ура!</button></div>`;document.body.appendChild(d);d.querySelector('button').onclick=()=>{d.remove();render()};SFX.lvl()}
+function confetti(){const cols=['#5bb046','#ffd84a','#5ff0e8','#e2b996','#a0703f','#d64b3a'];for(let i=0;i<28;i++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'vw';c.style.background=pick(cols);c.style.animationDelay=Math.random()*.5+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),2300)}}
+
+/* ============ СТАРТ ============ */
+render();
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
