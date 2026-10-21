@@ -414,14 +414,24 @@ PETS.forEach(p=>{p.cost*=2;p.d=p.d.replace('+1 изумруд','+1 изумру�
 for(const id in ITEMS){if(id==='stick')continue;const c=ITEMS[id].cost;for(const k in c)c[k]=Math.ceil(c[k]*1.5)}
 for(let t=1;t<=5;t++)ITEMS['sword'+t].d=`Шанс ${8*t}% на лишний изумруд`;
 ITEMS.book.d='+2 изумруда за каждый поход без ошибок';ITEMS.pen.d='В диктанте: шанс 50% на +1 изумруд за слово; в письме по памяти — больше изумрудов';
-const BIG_ACH=new Set(['c500','c1000','h100','cl10','s50','d14','d30','w100','wall','arm','cup','pall','ball','lv10']);
+const BIG_ACH=new Set(['totall','star','c500','c1000','h100','cl10','s50','d14','d30','w100','wall','arm','cup','pall','ball','lv10']);
+/* ===== КОЛЛЕКЦИЯ И ТОТЕМЫ ===== */
+const COLL=[
+{id:'forest',n:'Тотем Леса',i:'🌳',price:20,dia:1,res:{wood:5},parts:[['mush','🍄','Гриб-талисман'],['acorn','🌰','Жёлудь удачи'],['maple','🍁','Кленовый лист']]},
+{id:'sea',n:'Тотем Моря',i:'🔱',price:25,dia:2,res:{iron:3},parts:[['shell','🐚','Ракушка'],['anchor','⚓','Якорь'],['fish','🐠','Золотая рыбка']]},
+{id:'ancient',n:'Тотем Древних',i:'🗿',price:30,dia:2,res:{gold:3},parts:[['key','🗝️','Старый ключ'],['amphora','🏺','Амфора'],['candle','🕯️','Свеча']]},
+{id:'sky',n:'Тотем Неба',i:'🌌',price:35,dia:3,res:{crystal:2},parts:[['starlet','⭐','Звёздочка'],['moon','🌙','Месяц'],['comet','☄️','Комета']]},
+{id:'mind',n:'Тотем Знаний',i:'🎓',price:40,dia:3,res:{crystal:3},parts:[['quill','🖋️','Ручка писателя'],['ruler','📐','Линейка'],['loupe','🔍','Лупа']]}];
+const STAR={n:'Звезда Мастера слова',i:'🌟',dia:5,res:{crystal:5}};
+const collOpen=k=>k===0||!!S.totems[COLL[k-1].id];
+function randomPart(){const c=[];COLL.forEach((t,k)=>{if(collOpen(k)&&!S.totems[t.id])t.parts.forEach(p=>{if(!S.coll[p[0]])c.push(p)})});return c.length?pick(c):null}
 const PET_LINES=['Ты молодец! Давай ещё один поход?','Сначала найди «опасное место», потом проверяй.','Безударную гласную ставь под ударение!','Перед «а» и «но» — запятая!','Словарные слова лучше повторять каждый день.','Ошибка — это подсказка, что повторить.','Нажми «Почему так?» — там секрет правила.','Собери ресурсы и построй что-нибудь в деревне!'];
 
 /* ============ СОСТОЯНИЕ ============ */
 const KEY='gramotey-v1';
 const DEF={v:1,em:0,dia:0,xp:0,lvl:1,res:{wood:0,stone:0,paper:0,coal:0,iron:0,gold:0,crystal:0},inv:{},worlds:{},stats:{},nb:{},sr:{},ach:{},
 pets:[],pet:null,themes:['meadow'],theme:'meadow',build:{},streak:0,bestStreak:0,boost:false,
-days:{last:'',count:0,best:0,list:[]},daily:{date:'',q:[],p:{},claimed:false,hk:0,used:0,bonus:0},heat:{},first:'',lastHike:0,
+days:{last:'',count:0,best:0,list:[]},daily:{date:'',q:[],p:{},claimed:false,hk:0,used:0,bonus:0},heat:{},first:'',lastHike:0,coll:{},totems:{},star:false,
 cnt:{tasks:0,correct:0,hikes:0,clean:0,explain:0,crafts:0,fixed:0,spent:0,dictClean:0,memClean:0,memTexts:0},sound:true,readRules:{},memIdx:0};
 function merge(d,s){if(!s||typeof s!=='object')return JSON.parse(JSON.stringify(d));const o=Array.isArray(d)?[]:{};for(const k in d){o[k]=(d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k]))?merge(d[k],s[k]):(s[k]!==undefined?s[k]:JSON.parse(JSON.stringify(d[k])))}for(const k in s)if(!(k in o))o[k]=s[k];return o}
 let S;try{S=merge(DEF,JSON.parse(localStorage.getItem(KEY)))}catch(e){S=merge(DEF,null)}
@@ -579,6 +589,7 @@ const ACH=[
 ['why','Почемучка','Прочитай 20 объяснений','❓',s=>s.cnt.explain>=20],['fix','Работа над ошибками','Исправь 10 ошибок из тетради','📓',s=>s.cnt.fixed>=10],
 ['dk','Диктант на «5»','Диктант без ошибок','🎧',s=>s.cnt.dictClean>=1],['mm1','Отличная память','Текст по памяти без ошибок','🧩',s=>s.cnt.memClean>=1],['mm10','Писатель','10 текстов по памяти','✒️',s=>s.cnt.memTexts>=10],
 ['rich','Богач','Накопи 100 изумрудов','💰',s=>s.em>=100],['spend','Щедрая душа','Потрать 15 алмазов','🎁',s=>s.cnt.spent>=15],
+['tot1','Первый тотем','Собери первый тотем','🗿',s=>Object.keys(s.totems||{}).length>=1],['totall','Хранитель тотемов','Собери все 5 тотемов','🏛️',s=>Object.keys(s.totems||{}).length>=5],['star','Звезда Мастера','Создай Звезду Мастера слова','🌟',s=>!!s.star],
 ['rules','Знаток правил','Прочитай все правила','📖',s=>Object.keys(s.readRules).length>=Object.keys(RULES).length],['lv10','Десятый уровень','Достигни 10 уровня','🔟',s=>s.lvl>=10]
 ];
 function checkAch(){for(const a of ACH){if(!S.ach[a[0]]&&a[4](S)){S.ach[a[0]]=today();const big=BIG_ACH.has(a[0])||a[0].startsWith('m_');if(big)S.dia++;else S.em+=3;toast(a[3],`Достижение: ${a[1]}! `+(big?'+1 '+DI:'+3 '+EM))}}}
@@ -607,6 +618,7 @@ ${nbn?`<button class="btn wide blue mtop" id="nb">📓 Тетрадь ошибо
 <div class="card"><h2>📋 Задания дня</h2>${qs}
 <button class="btn wide gold mtop" id="claim" ${questsDone()&&!S.daily.claimed?'':'disabled'}>${S.daily.claimed?'Сундук открыт — приходи завтра':'🎁 Открыть сундук дня'}</button></div>
 <div class="card"><h2>🔥 Дни подряд: ${S.days.count||0}</h2><div class="streak">${last7.map(x=>`<i class="${x?'on':''}"></i>`).join('')}</div><div class="muted mtop">Бонусы за 3, 7, 14 и 30 дней подряд: алмазы ${DI}</div></div>
+<div class="card"><h2>🗿 Витрина тотемов</h2><div class="village" style="grid-template-columns:repeat(6,1fr);background:linear-gradient(#e9d9b8,#c9a877)">${COLL.map(t=>S.totems[t.id]?`<div class="plot">${t.i}</div>`:`<div class="plot empty">${t.parts.filter(p=>S.coll[p[0]]).length}/3</div>`).join('')}<div class="plot ${S.star?'':'empty'}">${S.star?STAR.i:'★'}</div></div><div class="muted mtop">Покупай предметы в Лавке → «Тотемы» и объединяй по три.</div></div>
 <div class="card"><h2>🏘️ Моя деревня</h2><div class="village">${BUILD.map(b=>S.build[b.id]?`<div class="plot" title="${b.n}">${b.i}</div>`:`<div class="plot empty">?</div>`).join('')}</div><div class="muted mtop">Стройте дома в Лавке за алмазы и ресурсы. Каждая постройка даёт +1 ${EM} в сундуке дня.</div></div>
 <div class="row"><button class="btn gray flex1" id="rules">📖 Правила</button><button class="btn gray flex1" id="set">⚙️ Настройки</button></div>`;
 $('#go').onclick=()=>openWorld(rec.w);if(nbn)$('#nb').onclick=()=>startHike('nb');$('#claim').onclick=claimDaily;$('#rules').onclick=showRules;$('#set').onclick=showSettings}
@@ -709,7 +721,7 @@ if(clean){S.cnt.clean++;S.dia++;const ce=3+(S.inv.book?2:0);S.em+=ce;H.em+=ce;S.
 const str=clean?'⭐⭐⭐':sc>=n*.8?'⭐⭐☆':sc>=n*.5?'⭐☆☆':'☆☆☆';
 const mis=H.tasks.filter(t=>!t.ok);
 $('#task').innerHTML=`<div class="oh"><button class="x" id="tx">✕</button><div class="pr" style="font-weight:900">Поход завершён</div></div><div class="ob"><div class="card res-big"><div class="str">${str}</div><div class="sc">${sc} / ${n}</div>${lvlMsg}
-<div class="rwlist"><span>+${H.em} ${EM}</span>${clean?`<span>+1 ${DI} чистый поход</span><span>🛒 +1 покупка сегодня</span>`:''}${Object.entries(H.res).map(([k,v])=>`<span>${blk(k,18)} ${v}</span>`).join('')}</div></div>
+<div class="rwlist"><span>+${H.em} ${EM}</span>${clean?`<span>+1 ${DI} чистый поход</span><span>🛒 +1 покупка без наценки</span>`:''}${Object.entries(H.res).map(([k,v])=>`<span>${blk(k,18)} ${v}</span>`).join('')}</div></div>
 ${mis.length?`<div class="card"><h2>📓 Разбор ошибок</h2><p class="muted">Нажми на слово, чтобы ещё раз прочитать объяснение.</p>${mis.map(t=>`<details class="mis"><summary>${t.cat==='zap'||t.cat==='prist'?t.full:t.full} </summary><div class="expl">${t.expl}</div></details>`).join('')}</div>`:''}
 <div class="row"><button class="btn gray flex1" id="hm">🏡 Домой</button><button class="btn flex1" id="again">Ещё поход ▶</button></div></div>`;
 $('#tx').onclick=exitTask;$('#hm').onclick=exitTask;$('#again').onclick=()=>{const w=wid;exitTask();if(w==='nb'&&!Object.keys(S.nb).length){toast('📓','Тетрадь пуста!');return}startHike(w)};
@@ -753,11 +765,11 @@ $('#tx').onclick=exitTask;$('#trl').onclick=()=>showRule('pamyat');$('#hm').oncl
 /* ============ ЛАВКА И ВЕРСТАК: ПРАВИЛА ============ */
 function shopLimit(){const d=dayN(today())-dayN(S.first||today());const base=d<7?8:d<10?7:d<13?6:5;return base+(S.daily.bonus||0)}
 const actionsLeft=()=>Math.max(0,shopLimit()-(S.daily.used||0));
-function shopState(){const h=new Date().getHours();if(h>=21||h<7)return 'night';if(!(S.daily.hk>0))return 'locked';if(actionsLeft()<=0)return 'limit';return 'open'}
+function shopState(){return 'open'}
 function heatN(id){const x=S.heat[id];if(!x)return 0;return Math.max(0,x.n-(dayN(today())-x.d))}
-function dealId(){const ids=[...PETS.map(p=>'pet:'+p.id),...BUILD.map(b=>'b:'+b.id),...THEMES.filter(t=>t.cost).map(t=>'th:'+t.id),'luck',...Object.keys(ITEMS).filter(i=>i!=='stick').map(i=>'it:'+i),...Object.keys(RES).map(k=>'res:'+k)];const r=seeded('deal'+today());r();return ids[Math.floor(r()*ids.length)]}
+function dealId(){const ids=[...PETS.map(p=>'pet:'+p.id),...BUILD.map(b=>'b:'+b.id),...THEMES.filter(t=>t.cost).map(t=>'th:'+t.id),'luck',...Object.keys(ITEMS).filter(i=>i!=='stick').map(i=>'it:'+i),...Object.keys(RES).map(k=>'res:'+k),...COLL.flatMap(t=>t.parts.map(p=>'col:'+p[0]))];const r=seeded('deal'+today());r();return ids[Math.floor(r()*ids.length)]}
 const freshLeft=()=>10*60e3-(Date.now()-(S.lastHike||0));
-function priceMult(id){let m=1;const why=[];const n=heatN(id);if(n){m*=Math.pow(1.15,n);why.push('↑'+Math.round((Math.pow(1.15,n)-1)*100)+'%')}const h=new Date().getHours();if(h>=18&&h<21){m*=1.1;why.push('🌙')}if(freshLeft()>0){m*=.85;why.push('💰')}if(dealId()===id){m*=.5;why.push('⭐')}return{m,why}}
+function priceMult(id){let m=1;const why=[];const n=heatN(id);if(n){m*=Math.pow(1.15,n);why.push('↑'+Math.round((Math.pow(1.15,n)-1)*100)+'%')}const h=new Date().getHours();if(h>=18&&h<21){m*=1.1;why.push('🌙')}else if(h>=21||h<7){m*=1.2;why.push('🌙🌙')}if(!(S.daily.hk>0)){m*=1.2;why.push('📚')}const over=(S.daily.used||0)-shopLimit()+1;if(over>0){m*=Math.pow(1.3,over);why.push('😴')}if(freshLeft()>0){m*=.85;why.push('💰')}if(dealId()===id){m*=.5;why.push('⭐')}return{m,why}}
 const adj=(v,m)=>Math.max(1,Math.ceil(v*m-1e-9));
 function adjCost(cost,m){const o={};for(const k in cost)o[k]=adj(cost[k],m);return o}
 function useAction(id){S.daily.used=(S.daily.used||0)+1;S.heat[id]={n:heatN(id)+1,d:dayN(today())}}
@@ -765,8 +777,8 @@ const whyH=w=>w.length?` <span class="why">${w.join(' ')}</span>`:'';
 function gateCard(){const s=shopState();if(s==='open')return '';
 const msg={night:['🌙','Торговец спит','С 21:00 до 7:00 лавка и мастерская закрыты. Приходи утром!'],locked:['🔒','Сначала поход','Лавка и верстак открываются после первого похода за день. Сначала учёба — потом покупки!'],limit:['📦','На сегодня хватит','Покупки и крафты на сегодня закончились. Приходи завтра! Поход без ошибок даёт +1 покупку на сегодня.']}[s];
 return `<div class="card center"><div style="font-size:54px">${msg[0]}</div><h2>${msg[1]}</h2><p>${msg[2]}</p>${s!=='night'?'<button class="btn wide" id="gogo">В поход ▶</button>':''}</div>`}
-function shopBar(){const h=new Date().getHours();const fl=freshLeft();return `<div class="sbar"><span>🛒 Сегодня: <b>${S.daily.used||0}/${shopLimit()}</b></span>${h>=18&&h<21?'<span>🌙 вечер +10%</span>':''}${fl>0?`<span>💰 −15% ещё ${Math.ceil(fl/60e3)} мин</span>`:''}</div>`}
-const LEGEND='<p class="muted small">⭐ товар дня −50% · 💰 свежая выручка −15% (10 минут после похода) · 🌙 вечер 18:00–21:00 +10% · ↑ покупал недавно: каждый раз +15%, за день без покупки остывает.</p>';
+function shopBar(){const h=new Date().getHours();const fl=freshLeft();const used=S.daily.used||0,lim=shopLimit();return `<div class="sbar"><span>🛒 Без наценки: <b>${Math.min(used,lim)}/${lim}</b></span>${used>=lim?'<span>😴 торговец устал: +30% за каждую следующую</span>':''}${!(S.daily.hk>0)?'<span>📚 без похода +20%</span>':''}${h>=18&&h<21?'<span>🌙 вечер +10%</span>':''}${h>=21||h<7?'<span>🌙🌙 ночь +20%</span>':''}${fl>0?`<span>💰 −15% ещё ${Math.ceil(fl/60e3)} мин</span>`:''}</div>`}
+const LEGEND='<p class="muted small">Как меняются цены: ⭐ товар дня −50% · 💰 10 минут после похода −15% · 📚 сегодня ещё не было похода +20% · 🌙 вечер 18–21 +10%, 🌙🌙 ночь +20% · ↑ покупал недавно: каждый раз +15%, за день без покупки остывает · 😴 после дневного лимита каждая покупка ещё +30%. Поход без ошибок: +1 покупка без наценки.</p>';
 function bindGate(){const g=$('#gogo');if(g)g.onclick=()=>openWorld(recommend().w)}
 
 /* ============ ВЕРСТАК ============ */
@@ -784,18 +796,24 @@ return `<div class="rec ${locked?'lock':''}"><div class="ri">${itemIcon(id)}</di
 $('#view').querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{craftSeg=b.dataset.s;renderCraft()});
 $('#view').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>craft(b.dataset.c));bindGate();
 const d=$('#drink');if(d)d.onclick=()=>{if(S.boost)return;S.inv.potion--;S.boost=true;save();toast('🧪','Зелье выпито!');renderCraft()}}
-function craft(id){const it=ITEMS[id];if(shopState()!=='open')return;const cost=adjCost(it.cost,priceMult('it:'+id).m);if(S.lvl<it.lv||!canPay(cost)||(it.once&&S.inv[id]))return;pay(cost);useAction('it:'+id);S.inv[id]=(S.inv[id]||0)+(it.make||1);S.cnt.crafts++;quest('craft');SFX.coin();toast(it.i,`Создано: ${it.n}${it.make?' ×'+it.make:''} · осталось действий: ${actionsLeft()}`);checkAch();save();render()}
+function craft(id){const it=ITEMS[id];if(shopState()!=='open')return;const cost=adjCost(it.cost,priceMult('it:'+id).m);if(S.lvl<it.lv||!canPay(cost)||(it.once&&S.inv[id]))return;pay(cost);useAction('it:'+id);S.inv[id]=(S.inv[id]||0)+(it.make||1);S.cnt.crafts++;quest('craft');SFX.coin();toast(it.i,`Создано: ${it.n}${it.make?' ×'+it.make:''} ${actionsLeft()?' · без наценки ещё '+actionsLeft():''}`);checkAch();save();render()}
 
 /* ============ ЛАВКА ============ */
-let shopSeg='pets';
+let shopSeg='coll';
 const LUCK=2;
-function renderShop(){const st=shopState();const segs=[['pets','🐾 Питомцы'],['village','🏘️ Деревня'],['themes','🎨 Фон'],['luck','🎁 Удача'],['trade','🔄 Обмен']];
+function renderShop(){const st=shopState();const segs=[['coll','🗿 Тотемы'],['pets','🐾 Питомцы'],['village','🏘️ Деревня'],['themes','🎨 Фон'],['luck','🎁 Удача'],['trade','🔄 Обмен']];
 const P=(id,base)=>{const pm=priceMult(id);return{v:adj(base,pm.m),w:whyH(pm.why),m:pm.m}};
 let body='';
 if(shopSeg==='pets')body=PETS.map(p=>{const own=S.pets.includes(p.id);const pr=P('pet:'+p.id,p.cost);return `<div class="rec"><div class="ri">${p.i}</div><div class="rb"><div class="rn">${p.n}</div><div class="rd">${p.d}</div><div class="cost">${own?(S.pet===p.id?'⭐ идёт с тобой':'✅ твой'):`${DI} ${pr.v}${pr.w}`}</div></div>${own?(S.pet===p.id?'':`<button class="btn sm blue" data-pa="${p.id}">Взять</button>`):`<button class="btn sm" data-pb="${p.id}" ${S.dia>=pr.v?'':'disabled'}>Купить</button>`}</div>`}).join('')+'<p class="muted small">Питомец живёт на главной и даёт бонус в своих мирах. С собой можно взять одного (смена питомца бесплатна).</p>';
 if(shopSeg==='village')body=`<div class="village" style="margin-bottom:10px">${BUILD.map(b=>S.build[b.id]?`<div class="plot">${b.i}</div>`:'<div class="plot empty">?</div>').join('')}</div>`+BUILD.map(b=>{const own=S.build[b.id];const pm=priceMult('b:'+b.id);const d=adj(b.d,pm.m),c=adjCost(b.cost,pm.m);const ok=S.dia>=d&&canPay(c);return `<div class="rec"><div class="ri">${b.i}</div><div class="rb"><div class="rn">${b.n}</div><div class="cost">${own?'✅ построено':`<span class="${S.dia<d?'no':''}">${DI} ${d}</span>${costHtml(c)}${whyH(pm.why)}`}</div></div>${own?'':`<button class="btn sm" data-bb="${b.id}" ${ok?'':'disabled'}>Строить</button>`}</div>`}).join('')+`<p class="muted small">Каждая постройка: +1 ${EM} в сундуке дня каждый день.</p>`;
 if(shopSeg==='themes')body=THEMES.map(t=>{const own=S.themes.includes(t.id);const pr=P('th:'+t.id,t.cost);return `<div class="rec"><div class="ri" style="background:${t.c}"></div><div class="rb"><div class="rn">${t.n}</div><div class="cost">${own?(S.theme===t.id?'⭐ включён':'✅ куплен'):`${DI} ${pr.v}${pr.w}`}</div></div>${own?(S.theme===t.id?'':`<button class="btn sm blue" data-ta="${t.id}">Включить</button>`):`<button class="btn sm" data-tb="${t.id}" ${S.dia>=pr.v?'':'disabled'}>Купить</button>`}</div>`}).join('');
-if(shopSeg==='luck'){const pr=P('luck',LUCK);body=`<div class="center"><div style="font-size:70px">🎁</div><p><b>Сундук удачи</b> — внутри изумруды, ресурсы, а иногда факелы, щит или зелье!</p><button class="btn gold" id="luck" ${S.dia>=pr.v?'':'disabled'}>Открыть за ${pr.v} ${DI}</button><div class="mtop">${pr.w}</div></div>`}
+if(shopSeg==='coll'){body=`<p class="muted">Собери 3 предмета серии и объедини их в <b>тотем</b>. Тотем открывает следующую серию. Пять тотемов объединяются в <b>${STAR.i} ${STAR.n}</b>.</p>`+COLL.map((t,k)=>{const done=S.totems[t.id];const open=collOpen(k);
+ let h=`<h3>${t.i} ${t.n}${done?' ✅':''}</h3>`;if(!open)return h+`<p class="muted">🔒 Откроется, когда соберёшь «${COLL[k-1].n}».</p>`;if(done)return h+`<p class="muted">Тотем собран и стоит на витрине.</p>`;
+ h+=t.parts.map(p=>{const own=S.coll[p[0]];const pr=P('col:'+p[0],t.price);return `<div class="rec"><div class="ri">${p[1]}</div><div class="rb"><div class="rn">${p[2]}</div><div class="cost">${own?'✅ есть':`${EM} ${pr.v}${pr.w}`}</div></div>${own?'':`<button class="btn sm" data-cb="${p[0]}" data-t="${t.id}" ${S.em>=pr.v?'':'disabled'}>Купить</button>`}</div>`}).join('');
+ const all=t.parts.every(p=>S.coll[p[0]]);const pm=priceMult('fuse:'+t.id);const d=adj(t.dia,pm.m),c=adjCost(t.res,pm.m);
+ return h+`<div class="rec"><div class="ri">${t.i}</div><div class="rb"><div class="rn">Объединить в ${t.n}</div><div class="rd">${t.parts.map(p=>p[1]).join(' + ')} = ${t.i}</div><div class="cost"><span class="${S.dia<d?'no':''}">${DI} ${d}</span>${costHtml(c)}${whyH(pm.why)}</div></div><button class="btn sm purple" data-fu="${t.id}" ${all&&S.dia>=d&&canPay(c)?'':'disabled'}>Объединить</button></div>`}).join('')+
+ (()=>{const allT=COLL.every(t=>S.totems[t.id]);const pm=priceMult('fuse:star');const d=adj(STAR.dia,pm.m),c=adjCost(STAR.res,pm.m);return `<h3>${STAR.i} ${STAR.n}${S.star?' ✅':''}</h3>`+(S.star?'<p class="muted">Главный трофей собран! Ты настоящий Мастер слова.</p>':`<div class="rec"><div class="ri">${STAR.i}</div><div class="rb"><div class="rn">${COLL.map(t=>S.totems[t.id]?t.i:'▫️').join(' ')}</div><div class="cost"><span class="${S.dia<d?'no':''}">${DI} ${d}</span>${costHtml(c)}${whyH(pm.why)}</div></div><button class="btn sm gold" id="starb" ${allT&&S.dia>=d&&canPay(c)?'':'disabled'}>Создать</button></div>`)})()}
+if(shopSeg==='luck'){const pr=P('luck',LUCK);body=`<div class="center"><div style="font-size:70px">🎁</div><p><b>Сундук удачи</b> — внутри изумруды, ресурсы, а иногда факелы, щит, зелье или предмет для тотема!</p><button class="btn gold" id="luck" ${S.dia>=pr.v?'':'disabled'}>Открыть за ${pr.v} ${DI}</button><div class="mtop">${pr.w}</div></div>`}
 if(shopSeg==='trade'){const ex=P('exch',EXCH);body=`<div class="rec"><div class="ri">${DI}</div><div class="rb"><div class="rn">1 алмаз</div><div class="cost">${EM} ${ex.v}${ex.w}</div></div><button class="btn sm" id="buyd" ${S.em>=ex.v?'':'disabled'}>Обменять</button></div>`+Object.keys(RES).map(k=>{const pr=P('res:'+k,RES[k].p);return `<div class="rec"><div class="ri">${blk(k,30)}</div><div class="rb"><div class="rn">${RES[k].n}</div><div class="cost">${EM} ${pr.v}${pr.w}</div></div><button class="btn sm" data-r="${k}" ${S.em>=pr.v?'':'disabled'}>Купить</button></div>`}).join('')}
 $('#view').innerHTML=st!=='open'?gateCard():`<div class="card"><h2>💎 Лавка</h2>${shopBar()}<div class="seg">${segs.map(([id,n])=>`<button data-s="${id}" class="${shopSeg===id?'on':''}">${n}</button>`).join('')}</div>${body}${LEGEND}</div>`;
 bindGate();if(st!=='open')return;
@@ -808,12 +826,16 @@ V.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>{const x=THEMES.find(y=
 V.querySelectorAll('[data-ta]').forEach(b=>b.onclick=()=>{S.theme=b.dataset.ta;done()});
 V.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const k=b.dataset.r;const v=P('res:'+k,RES[k].p).v;if(!ok()||S.em<v)return;useAction('res:'+k);S.em-=v;addRes(k);SFX.coin();done()});
 const bd=$('#buyd');if(bd)bd.onclick=()=>{const v=P('exch',EXCH).v;if(!ok()||S.em<v)return;useAction('exch');S.em-=v;S.dia++;SFX.coin();done()};
+V.querySelectorAll('[data-cb]').forEach(b=>b.onclick=()=>{const t=COLL.find(x=>x.id===b.dataset.t);const id=b.dataset.cb;const v=P('col:'+id,t.price).v;if(S.coll[id]||S.em<v)return;useAction('col:'+id);S.em-=v;S.coll[id]=1;const p=t.parts.find(x=>x[0]===id);SFX.coin();toast(p[1],`${p[2]} — в коллекции!`);done()});
+V.querySelectorAll('[data-fu]').forEach(b=>b.onclick=()=>{const t=COLL.find(x=>x.id===b.dataset.fu);const pm=priceMult('fuse:'+t.id);const d=adj(t.dia,pm.m),c=adjCost(t.res,pm.m);if(S.totems[t.id]||!t.parts.every(p=>S.coll[p[0]])||S.dia<d||!canPay(c))return;useAction('fuse:'+t.id);pay(c);t.parts.forEach(p=>delete S.coll[p[0]]);S.totems[t.id]=today();spend(d);confetti();levelUp('Тотем собран!',t.n,t.i,t.parts.map(p=>p[1]).join(' + ')+' = '+t.i+(COLL[COLL.indexOf(t)+1]?`<br>Открыта новая серия: ${COLL[COLL.indexOf(t)+1].n}`:''))});
+const sb=$('#starb');if(sb)sb.onclick=()=>{const pm=priceMult('fuse:star');const d=adj(STAR.dia,pm.m),c=adjCost(STAR.res,pm.m);if(S.star||!COLL.every(t=>S.totems[t.id])||S.dia<d||!canPay(c))return;useAction('fuse:star');pay(c);S.star=true;spend(d);confetti();setTimeout(confetti,600);levelUp('Звезда Мастера слова!','Главный трофей Грамотея',STAR.i,'Пять тотемов объединились в звезду!')};
 const lk=$('#luck');if(lk)lk.onclick=()=>{const v=P('luck',LUCK).v;if(!ok()||S.dia<v)return;useAction('luck');openLuck(v)};
 function done(){checkAch();save();render()}}
 function spend(n){S.dia-=n;S.cnt.spent+=n;checkAch();save();render()}
 function openLuck(v){spend(v);const r=Math.random();let txt,ico='🎁';
 if(r<.07){S.inv.potion=(S.inv.potion||0)+1;txt='Зелье ума!';ico='🧪'}else if(r<.17){S.inv.shield=(S.inv.shield||0)+1;txt='Щит!';ico='🛡️'}else if(r<.32){S.inv.torch=(S.inv.torch||0)+2;txt='2 факела!';ico='🔥'}
 else if(r<.38){S.dia+=3;txt=`Тройной алмаз: +3 ${DI}!`;ico='💎'}
+else if(r<.50&&randomPart()){const p=randomPart();S.coll[p[0]]=1;txt=`Предмет для тотема: ${p[2]}!`;ico=p[1]}
 else{const em=8+rnd(14);S.em+=em;const got={};for(let i=0;i<3;i++){const k=pick(['wood','stone','paper','coal','iron','gold','crystal']);got[k]=(got[k]||0)+1;addRes(k)}txt=`+${em} ${EM} `+Object.entries(got).map(([k,v])=>blk(k,16)+v).join(' ')}
 SFX.lvl();levelUp('Сундук удачи',txt,ico,'');save();render()}
 
