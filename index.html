@@ -190,6 +190,7 @@ details.mis summary{font-weight:800;cursor:pointer}
 .mtop{margin-top:10px}
 .center{text-align:center}
 .flex1{flex:1}
+.sbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;font-size:13px;font-weight:700}.sbar span{background:var(--panel2);border:2px solid var(--line);padding:2px 8px;border-radius:3px}.why{font-size:12px;background:#fff3c4;border:1px solid var(--line);border-radius:3px;padding:0 4px;font-weight:800}
 .pill{display:inline-block;background:var(--panel2);border:2px solid var(--line);border-radius:10px;padding:1px 8px;font-size:12px;font-weight:800}
 </style>
 </head>
@@ -407,13 +408,20 @@ const QUESTS=[
 {id:'fix',n:'Исправь 2 ошибки из тетради',g:2},{id:'zap',n:'Расставь запятые в 5 предложениях',g:5},
 {id:'why',n:'Прочитай 3 объяснения «Почему так?»',g:3},{id:'clean',n:'Пройди поход без ошибок',g:1}
 ];
+/* ===== БАЛАНС v2 ===== */
+const EXCH=15;
+PETS.forEach(p=>{p.cost*=2;p.d=p.d.replace('+1 изумруд','+1 изумруд примерно за каждый 3-й верный ответ')});BUILD.forEach(b=>{b.d*=2;for(const k in b.cost)b.cost[k]*=2});THEMES.forEach(t=>t.cost*=2);for(const k in RES)RES[k].p*=2;
+for(const id in ITEMS){if(id==='stick')continue;const c=ITEMS[id].cost;for(const k in c)c[k]=Math.ceil(c[k]*1.5)}
+for(let t=1;t<=5;t++)ITEMS['sword'+t].d=`Шанс ${8*t}% на лишний изумруд`;
+ITEMS.book.d='+2 изумруда за каждый поход без ошибок';ITEMS.pen.d='В диктанте: шанс 50% на +1 изумруд за слово; в письме по памяти — больше изумрудов';
+const BIG_ACH=new Set(['c500','c1000','h100','cl10','s50','d14','d30','w100','wall','arm','cup','pall','ball','lv10']);
 const PET_LINES=['Ты молодец! Давай ещё один поход?','Сначала найди «опасное место», потом проверяй.','Безударную гласную ставь под ударение!','Перед «а» и «но» — запятая!','Словарные слова лучше повторять каждый день.','Ошибка — это подсказка, что повторить.','Нажми «Почему так?» — там секрет правила.','Собери ресурсы и построй что-нибудь в деревне!'];
 
 /* ============ СОСТОЯНИЕ ============ */
 const KEY='gramotey-v1';
 const DEF={v:1,em:0,dia:0,xp:0,lvl:1,res:{wood:0,stone:0,paper:0,coal:0,iron:0,gold:0,crystal:0},inv:{},worlds:{},stats:{},nb:{},sr:{},ach:{},
 pets:[],pet:null,themes:['meadow'],theme:'meadow',build:{},streak:0,bestStreak:0,boost:false,
-days:{last:'',count:0,best:0,list:[]},daily:{date:'',q:[],p:{},claimed:false},
+days:{last:'',count:0,best:0,list:[]},daily:{date:'',q:[],p:{},claimed:false,hk:0,used:0,bonus:0},heat:{},first:'',lastHike:0,
 cnt:{tasks:0,correct:0,hikes:0,clean:0,explain:0,crafts:0,fixed:0,spent:0,dictClean:0,memClean:0,memTexts:0},sound:true,readRules:{},memIdx:0};
 function merge(d,s){if(!s||typeof s!=='object')return JSON.parse(JSON.stringify(d));const o=Array.isArray(d)?[]:{};for(const k in d){o[k]=(d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k]))?merge(d[k],s[k]):(s[k]!==undefined?s[k]:JSON.parse(JSON.stringify(d[k])))}for(const k in s)if(!(k in o))o[k]=s[k];return o}
 let S;try{S=merge(DEF,JSON.parse(localStorage.getItem(KEY)))}catch(e){S=merge(DEF,null)}
@@ -536,7 +544,7 @@ const all=keysOf(wid);const maxD=lvl<=1?1:lvl===2?2:3;let pool=all.filter(k=>{co
 /* ============ ДНИ, ЗАДАНИЯ ДНЯ ============ */
 function seeded(str){let h=0;for(const c of str)h=(h*131+c.charCodeAt(0))%1e9;return()=>{h=(h*9301+49297)%233280;return h/233280}}
 function ensureDaily(){const td=today();if(S.daily.date===td)return;const r=seeded(td);let pool=QUESTS.filter(q=>q.id!=='task'&&(q.id!=='fix'||Object.keys(S.nb).length>=2));const q=['task'];while(q.length<3){const x=pool.splice(Math.floor(r()*pool.length),1)[0];q.push(x.id)}
-S.daily={date:td,q,p:{},claimed:false};if(S.inv.lantern){S.inv.torch=(S.inv.torch||0)+1;setTimeout(()=>toast('🏮','Фонарь подарил факел!'),800)}save()}
+S.daily={date:td,q,p:{},claimed:false,hk:0,used:0,bonus:0};if(S.inv.lantern){S.inv.torch=(S.inv.torch||0)+1;setTimeout(()=>toast('🏮','Фонарь подарил факел!'),800)}save()}
 function quest(id,n=1){if(!S.daily.q.includes(id))return;const g=QUESTS.find(q=>q.id===id).g;const was=S.daily.p[id]||0;S.daily.p[id]=Math.min(g,was+n);if(was<g&&S.daily.p[id]>=g)toast('✅','Задание дня: '+QUESTS.find(q=>q.id===id).n)}
 const questsDone=()=>S.daily.q.every(id=>(S.daily.p[id]||0)>=QUESTS.find(q=>q.id===id).g);
 function markActive(){const td=today();if(S.days.last===td)return;const y=dayS(dayN(td)-1);S.days.count=S.days.last===y?S.days.count+1:1;S.days.last=td;S.days.best=Math.max(S.days.best,S.days.count);S.days.list.push(td);S.days.list=S.days.list.slice(-60);
@@ -573,7 +581,7 @@ const ACH=[
 ['rich','Богач','Накопи 100 изумрудов','💰',s=>s.em>=100],['spend','Щедрая душа','Потрать 15 алмазов','🎁',s=>s.cnt.spent>=15],
 ['rules','Знаток правил','Прочитай все правила','📖',s=>Object.keys(s.readRules).length>=Object.keys(RULES).length],['lv10','Десятый уровень','Достигни 10 уровня','🔟',s=>s.lvl>=10]
 ];
-function checkAch(){for(const a of ACH){if(!S.ach[a[0]]&&a[4](S)){S.ach[a[0]]=today();S.dia++;toast(a[3],`Достижение: ${a[1]}! +1 `+DI)}}}
+function checkAch(){for(const a of ACH){if(!S.ach[a[0]]&&a[4](S)){S.ach[a[0]]=today();const big=BIG_ACH.has(a[0])||a[0].startsWith('m_');if(big)S.dia++;else S.em+=3;toast(a[3],`Достижение: ${a[1]}! `+(big?'+1 '+DI:'+3 '+EM))}}}
 
 /* ============ UI: ВЕРХ, ВКЛАДКИ ============ */
 function renderTop(){const n=need(S.lvl);$('#top').innerHTML=`<span class="lv">${S.lvl}</span><div class="xpw"><div class="ttl">${title(S.lvl)}</div><div class="bar"><i style="width:${Math.min(100,S.xp/n*100)}%"></i></div></div><span class="cur">${EM} ${S.em}</span><span class="cur">${DI} ${S.dia}</span><button id="snd" aria-label="Звук">${S.sound?'🔊':'🔇'}</button>`;
@@ -674,9 +682,9 @@ S.cnt.tasks++;quest('task');const st=S.stats[t.cat]||(S.stats[t.cat]={r:0,t:0});
 if(H.wid==='dikt'){const d=S.stats.dikt||(S.stats.dikt={r:0,t:0});d.t++;if(ok)d.r++}
 let rw='';
 if(ok){S.cnt.correct++;H.score++;SFX.ok();if(t.cat==='zap')quest('zap');
- let em=(t.hintUsed&&!t.torch)?0:t.diff;if(em){if(Math.random()<bestTier('sword')*.15)em++;em+=petBonus(H.wid);if(S.inv.pen&&(H.wid==='dikt'))em++;if(H.boost)em*=2}
- S.em+=em;H.em+=em;const r=dropRes(t.diff);for(const k in r)H.res[k]=(H.res[k]||0)+r[k];addXP(10+armorCount()*2);
- S.streak++;S.bestStreak=Math.max(S.bestStreak,S.streak);if(S.streak%5===0){S.dia++;toast('🔥',`${S.streak} подряд! +1 `+DI)}
+ let em=(t.hintUsed&&!t.torch)?0:(t.diff>=2?2:1);if(em){if(Math.random()<bestTier('sword')*.08)em++;if(petBonus(H.wid)&&Math.random()<1/3)em++;if(S.inv.pen&&H.wid==='dikt'&&Math.random()<.5)em++;if(H.boost)em*=2}
+ S.em+=em;H.em+=em;const r=Math.random()<.4?dropRes(t.diff):{};for(const k in r)H.res[k]=(H.res[k]||0)+r[k];addXP(10+armorCount()*2);
+ S.streak++;S.bestStreak=Math.max(S.bestStreak,S.streak);if(S.streak%10===0&&!H.streakDia){H.streakDia=1;S.dia++;toast('🔥',`${S.streak} подряд! +1 `+DI)}
  rw=`<span class="rw">+${em} ${EM} ${Object.entries(r).map(([k,v])=>blk(k,16)+(v>1?v:'')).join('')}</span>`;
  if(S.nb[t.key]){S.nb[t.key].ok++;if(S.nb[t.key].ok>=2){delete S.nb[t.key];S.cnt.fixed++;quest('fix');toast('📓','Ошибка исправлена и убрана из тетради!')}}}
 else{SFX.bad();if(S.inv.shield&&S.streak>=3){S.inv.shield--;toast('🛡️',`Щит спас серию: ${S.streak}!`)}else S.streak=0;const n=S.nb[t.key];S.nb[t.key]={n:(n?n.n:0)+1,ok:0}}
@@ -684,24 +692,24 @@ if(t.dict){const sr=S.sr[t.dict.plain]||{b:0,due:0};const td=dayN(today());if(ok
 const fb=$('#fb');const hb=$('#hb');if(hb)hb.innerHTML='';
 fb.innerHTML=ok?`<div class="fb ok"><div class="fbh">✅ Верно! ${rw}</div><button class="btn sm blue" id="why">❓ Почему так?</button><div class="expl hidden" id="ex">${t.expl}</div><button class="btn wide mtop" id="nx">Дальше ▶</button></div>`
 :`<div class="fb bad"><div class="fbh">❌ Ошибка — разберёмся</div>${info?`<div style="margin-bottom:6px">${info}</div>`:''}<div class="expl">${t.expl}</div><div class="small muted">Слово попало в 📓 тетрадь ошибок — мы его ещё повторим.</div><button class="btn wide mtop" id="nx">Понятно, дальше ▶</button></div>`;
-const w=$('#why');if(w)w.onclick=()=>{$('#ex').classList.remove('hidden');w.remove();S.cnt.explain++;quest('why');if(S.inv.book){S.em++;H.em++;toast('📘','Книга правил: +1 '+EM)}checkAch();save();renderTopLite()};
+const w=$('#why');if(w)w.onclick=()=>{$('#ex').classList.remove('hidden');w.remove();S.cnt.explain++;quest('why');checkAch();save();renderTopLite()};
 $('#nx').onclick=()=>{H.i++;if(H.i>=H.tasks.length)endHike();else showTask()};
 const kb=$('#kbw');if(kb)kb.innerHTML='';
 setTimeout(()=>fb.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
 checkAch();save();renderTopLite();
 const head=$('#task .pdots');if(head)head.innerHTML=H.tasks.map((x,i)=>`<i class="${x.done?(x.ok?'ok':'bad'):i===H.i?'cur':''}"></i>`).join('')}
 function renderTopLite(){renderTop()}
-function endHike(){const n=H.tasks.length;const sc=H.score;const wid=H.wid;let lvlMsg='';markActive();S.cnt.hikes++;quest('hike');
+function endHike(){const n=H.tasks.length;const sc=H.score;const wid=H.wid;let lvlMsg='';markActive();S.daily.hk=(S.daily.hk||0)+1;S.lastHike=Date.now();S.cnt.hikes++;quest('hike');
 if(wid==='dikt')quest('dikt');
 const pass=sc>=Math.ceil(n*.8);const clean=sc===n;
 if(wid!=='nb'){const w=S.worlds[wid]||(S.worlds[wid]={lvl:1,hikes:0,best:0});w.hikes++;w.best=Math.max(w.best||0,sc);
  if(pass&&w.lvl<5){w.lvl++;S.dia++;lvlMsg=`<p style="font-size:18px;font-weight:900">⬆️ Мир открыл уровень ${w.lvl}! +1 ${DI}</p>`;SFX.lvl();confetti()}
  else if(!pass)lvlMsg=`<p class="muted">Для нового уровня нужно 8 из 10. Посмотри разбор ошибок и попробуй ещё!</p>`;else lvlMsg='<p class="muted">Мир пройден на максимум! Возвращайся повторять.</p>'}
-if(clean){S.cnt.clean++;S.dia++;S.em+=5;H.em+=5;quest('clean');if(wid==='dikt')S.cnt.dictClean++;confetti()}
+if(clean){S.cnt.clean++;S.dia++;const ce=3+(S.inv.book?2:0);S.em+=ce;H.em+=ce;S.daily.bonus=(S.daily.bonus||0)+1;quest('clean');if(wid==='dikt')S.cnt.dictClean++;confetti()}
 const str=clean?'⭐⭐⭐':sc>=n*.8?'⭐⭐☆':sc>=n*.5?'⭐☆☆':'☆☆☆';
 const mis=H.tasks.filter(t=>!t.ok);
 $('#task').innerHTML=`<div class="oh"><button class="x" id="tx">✕</button><div class="pr" style="font-weight:900">Поход завершён</div></div><div class="ob"><div class="card res-big"><div class="str">${str}</div><div class="sc">${sc} / ${n}</div>${lvlMsg}
-<div class="rwlist"><span>+${H.em} ${EM}</span>${clean?`<span>+1 ${DI} чистый поход</span>`:''}${Object.entries(H.res).map(([k,v])=>`<span>${blk(k,18)} ${v}</span>`).join('')}</div></div>
+<div class="rwlist"><span>+${H.em} ${EM}</span>${clean?`<span>+1 ${DI} чистый поход</span><span>🛒 +1 покупка сегодня</span>`:''}${Object.entries(H.res).map(([k,v])=>`<span>${blk(k,18)} ${v}</span>`).join('')}</div></div>
 ${mis.length?`<div class="card"><h2>📓 Разбор ошибок</h2><p class="muted">Нажми на слово, чтобы ещё раз прочитать объяснение.</p>${mis.map(t=>`<details class="mis"><summary>${t.cat==='zap'||t.cat==='prist'?t.full:t.full} </summary><div class="expl">${t.expl}</div></details>`).join('')}</div>`:''}
 <div class="row"><button class="btn gray flex1" id="hm">🏡 Домой</button><button class="btn flex1" id="again">Ещё поход ▶</button></div></div>`;
 $('#tx').onclick=exitTask;$('#hm').onclick=exitTask;$('#again').onclick=()=>{const w=wid;exitTask();if(w==='nb'&&!Object.keys(S.nb).length){toast('📓','Тетрадь пуста!');return}startHike(w)};
@@ -729,7 +737,7 @@ function memCheck(){const tok=s=>s.trim().split(/\s+/).filter(Boolean).map(w=>({
 const A=tok(M.typed),B=tok(M.text);const ops=alignOps(A,B,(a,b)=>a.n===b.n);let good=0,punct=0;const bad=[];
 const html=ops.map(o=>{if(o.t==='eq'){good++;const pOk=o.a.p===o.b.p;if(!pOk)punct++;return `<span class="w ${pOk?'ok':'miss'}" title="знак">${esc(o.b.raw)}</span>`}
 if(o.t==='sub'){bad.push(o);return `<span class="w bad">${esc(o.b.raw)}</span>`}if(o.t==='del'){bad.push(o);return `<span class="w miss">${esc(o.b.raw)}</span>`}return ''}).join(' ');
-const total=B.length;const pct=Math.round(good/total*100);let em=good*(S.inv.pen?2:1)+(petBonus('pamyat')?Math.ceil(good/3):0);if(M.peeks===0&&bad.length===0)em+=5;if(H.boost)em*=2;S.em+=em;
+const total=B.length;const pct=Math.round(good/total*100);let em=Math.ceil(good/2)+(S.inv.pen?Math.ceil(good/4):0)+(petBonus('pamyat')?Math.ceil(good/6):0);if(M.peeks===0&&bad.length===0){em+=3;S.daily.bonus=(S.daily.bonus||0)+1}S.daily.hk=(S.daily.hk||0)+1;S.lastHike=Date.now();if(H.boost)em*=2;S.em+=em;
 addXP(good*3+armorCount());const res=dropRes(pct===100?3:2);markActive();S.cnt.hikes++;quest('hike');quest('mem');S.cnt.memTexts++;S.memIdx++;
 const st=S.stats.pamyat||(S.stats.pamyat={r:0,t:0});st.t+=total;st.r+=good;
 if(bad.length===0&&punct===0){S.cnt.memClean++;S.dia++;confetti();SFX.lvl()}else SFX.ok();
@@ -742,48 +750,71 @@ ${ex?`<div class="card"><h2>Разбор</h2>${ex}</div>`:''}<div class="prompt"
 <div class="row mtop"><button class="btn gray flex1" id="hm">🏡 Домой</button><button class="btn flex1" id="again">Следующий текст ▶</button></div></div>`;
 $('#tx').onclick=exitTask;$('#trl').onclick=()=>showRule('pamyat');$('#hm').onclick=exitTask;$('#again').onclick=()=>{exitTask();startMemory()};checkAch();save();renderTop()}
 
+/* ============ ЛАВКА И ВЕРСТАК: ПРАВИЛА ============ */
+function shopLimit(){const d=dayN(today())-dayN(S.first||today());const base=d<7?8:d<10?7:d<13?6:5;return base+(S.daily.bonus||0)}
+const actionsLeft=()=>Math.max(0,shopLimit()-(S.daily.used||0));
+function shopState(){const h=new Date().getHours();if(h>=21||h<7)return 'night';if(!(S.daily.hk>0))return 'locked';if(actionsLeft()<=0)return 'limit';return 'open'}
+function heatN(id){const x=S.heat[id];if(!x)return 0;return Math.max(0,x.n-(dayN(today())-x.d))}
+function dealId(){const ids=[...PETS.map(p=>'pet:'+p.id),...BUILD.map(b=>'b:'+b.id),...THEMES.filter(t=>t.cost).map(t=>'th:'+t.id),'luck',...Object.keys(ITEMS).filter(i=>i!=='stick').map(i=>'it:'+i),...Object.keys(RES).map(k=>'res:'+k)];const r=seeded('deal'+today());r();return ids[Math.floor(r()*ids.length)]}
+const freshLeft=()=>10*60e3-(Date.now()-(S.lastHike||0));
+function priceMult(id){let m=1;const why=[];const n=heatN(id);if(n){m*=Math.pow(1.15,n);why.push('↑'+Math.round((Math.pow(1.15,n)-1)*100)+'%')}const h=new Date().getHours();if(h>=18&&h<21){m*=1.1;why.push('🌙')}if(freshLeft()>0){m*=.85;why.push('💰')}if(dealId()===id){m*=.5;why.push('⭐')}return{m,why}}
+const adj=(v,m)=>Math.max(1,Math.ceil(v*m-1e-9));
+function adjCost(cost,m){const o={};for(const k in cost)o[k]=adj(cost[k],m);return o}
+function useAction(id){S.daily.used=(S.daily.used||0)+1;S.heat[id]={n:heatN(id)+1,d:dayN(today())}}
+const whyH=w=>w.length?` <span class="why">${w.join(' ')}</span>`:'';
+function gateCard(){const s=shopState();if(s==='open')return '';
+const msg={night:['🌙','Торговец спит','С 21:00 до 7:00 лавка и мастерская закрыты. Приходи утром!'],locked:['🔒','Сначала поход','Лавка и верстак открываются после первого похода за день. Сначала учёба — потом покупки!'],limit:['📦','На сегодня хватит','Покупки и крафты на сегодня закончились. Приходи завтра! Поход без ошибок даёт +1 покупку на сегодня.']}[s];
+return `<div class="card center"><div style="font-size:54px">${msg[0]}</div><h2>${msg[1]}</h2><p>${msg[2]}</p>${s!=='night'?'<button class="btn wide" id="gogo">В поход ▶</button>':''}</div>`}
+function shopBar(){const h=new Date().getHours();const fl=freshLeft();return `<div class="sbar"><span>🛒 Сегодня: <b>${S.daily.used||0}/${shopLimit()}</b></span>${h>=18&&h<21?'<span>🌙 вечер +10%</span>':''}${fl>0?`<span>💰 −15% ещё ${Math.ceil(fl/60e3)} мин</span>`:''}</div>`}
+const LEGEND='<p class="muted small">⭐ товар дня −50% · 💰 свежая выручка −15% (10 минут после похода) · 🌙 вечер 18:00–21:00 +10% · ↑ покупал недавно: каждый раз +15%, за день без покупки остывает.</p>';
+function bindGate(){const g=$('#gogo');if(g)g.onclick=()=>openWorld(recommend().w)}
+
 /* ============ ВЕРСТАК ============ */
 let craftSeg='all';
-function renderCraft(){const lv=S.lvl;const ids=Object.keys(ITEMS);
-const inv=ids.filter(id=>S.inv[id]>0);
+function renderCraft(){const lv=S.lvl;const ids=Object.keys(ITEMS);const inv=ids.filter(id=>S.inv[id]>0);const st=shopState();
 const segs=[['all','Все'],['can','Можно создать'],['tools','Инструменты'],['troph','Трофеи']];
-const filt=id=>{const it=ITEMS[id];if(craftSeg==='can')return lv>=it.lv&&canPay(it.cost)&&!(it.once&&S.inv[id]);if(craftSeg==='tools')return !!(it.tier||it.armor||['torch','shield','potion','pen','book','lantern','chest'].includes(id));if(craftSeg==='troph')return it.d.startsWith('Трофей')||id==='cup'||id==='crown';return true};
-$('#view').innerHTML=`<div class="card"><h2>🧱 Ресурсы</h2><div class="res">${Object.keys(RES).map(k=>`<div>${blk(k,22)}<br>${S.res[k]||0}<div class="small" style="font-weight:600">${RES[k].n}</div></div>`).join('')}<div>${EM}<br>${S.em}<div class="small" style="font-weight:600">Изумруды</div></div></div><p class="muted small">Ресурсы падают за верные ответы: лёгкие задания — дерево, камень, бумага; средние — уголь и железо; трудные (диктант) — золото и кристаллы.</p></div>
+const costOf=id=>adjCost(ITEMS[id].cost,priceMult('it:'+id).m);
+const filt=id=>{const it=ITEMS[id];if(craftSeg==='can')return lv>=it.lv&&canPay(costOf(id))&&!(it.once&&S.inv[id]);if(craftSeg==='tools')return !!(it.tier||it.armor||['torch','shield','potion','pen','book','lantern','chest'].includes(id));if(craftSeg==='troph')return it.d.startsWith('Трофей')||id==='cup'||id==='crown';return true};
+$('#view').innerHTML=`<div class="card"><h2>🧱 Ресурсы</h2><div class="res">${Object.keys(RES).map(k=>`<div>${blk(k,22)}<br>${S.res[k]||0}<div class="small" style="font-weight:600">${RES[k].n}</div></div>`).join('')}<div>${EM}<br>${S.em}<div class="small" style="font-weight:600">Изумруды</div></div></div><p class="muted small">Ресурсы иногда выпадают за верные ответы: лёгкие задания — дерево, камень, бумага; средние — уголь и железо; трудные (диктант) — золото и кристаллы.</p></div>
 <div class="card"><h2>🎒 Мои вещи</h2>${inv.length?`<div class="res">${inv.map(id=>`<div style="font-size:24px" title="${ITEMS[id].n}">${ITEMS[id].i}<div class="small">${ITEMS[id].once?'✓':'×'+S.inv[id]}</div></div>`).join('')}</div>`:'<p class="muted">Пока пусто. Создай первую палку!</p>'}
 ${S.inv.potion?`<button class="btn purple wide mtop" id="drink" ${S.boost?'disabled':''}>${S.boost?'🧪 Зелье уже действует':'🧪 Выпить зелье ума (×2 изумруды в следующем походе)'}</button>`:''}</div>
-<div class="card"><h2>🛠️ Верстак</h2><div class="seg">${segs.map(([id,n])=>`<button data-s="${id}" class="${craftSeg===id?'on':''}">${n}</button>`).join('')}</div>
-${ids.filter(filt).map(id=>{const it=ITEMS[id];const locked=lv<it.lv;const own=it.once&&S.inv[id];const ok=!locked&&!own&&canPay(it.cost);
-return `<div class="rec ${locked?'lock':''}"><div class="ri">${itemIcon(id)}</div><div class="rb"><div class="rn">${it.n}${it.make?` ×${it.make}`:''}</div><div class="rd">${it.d}</div><div class="cost">${locked?`🔒 откроется на ${it.lv} уровне`:own?'✅ уже есть':costHtml(it.cost)}</div></div>${!locked&&!own?`<button class="btn sm" data-c="${id}" ${ok?'':'disabled'}>Создать</button>`:''}</div>`}).join('')||'<p class="muted">Ничего не подходит — собери ещё ресурсов в походах!</p>'}</div>`;
+${st!=='open'?gateCard():`<div class="card"><h2>🛠️ Верстак</h2>${shopBar()}<div class="seg">${segs.map(([id,n])=>`<button data-s="${id}" class="${craftSeg===id?'on':''}">${n}</button>`).join('')}</div>
+${ids.filter(filt).map(id=>{const it=ITEMS[id];const locked=lv<it.lv;const own=it.once&&S.inv[id];const pm=priceMult('it:'+id);const cost=costOf(id);const ok=!locked&&!own&&canPay(cost);
+return `<div class="rec ${locked?'lock':''}"><div class="ri">${itemIcon(id)}</div><div class="rb"><div class="rn">${it.n}${it.make?` ×${it.make}`:''}</div><div class="rd">${it.d}</div><div class="cost">${locked?`🔒 откроется на ${it.lv} уровне`:own?'✅ уже есть':costHtml(cost)+whyH(pm.why)}</div></div>${!locked&&!own?`<button class="btn sm" data-c="${id}" ${ok?'':'disabled'}>Создать</button>`:''}</div>`}).join('')||'<p class="muted">Ничего не подходит — собери ещё ресурсов в походах!</p>'}${LEGEND}</div>`}`;
 $('#view').querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{craftSeg=b.dataset.s;renderCraft()});
-$('#view').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>craft(b.dataset.c));
+$('#view').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>craft(b.dataset.c));bindGate();
 const d=$('#drink');if(d)d.onclick=()=>{if(S.boost)return;S.inv.potion--;S.boost=true;save();toast('🧪','Зелье выпито!');renderCraft()}}
-function craft(id){const it=ITEMS[id];if(S.lvl<it.lv||!canPay(it.cost)||(it.once&&S.inv[id]))return;pay(it.cost);S.inv[id]=(S.inv[id]||0)+(it.make||1);S.cnt.crafts++;quest('craft');SFX.coin();toast(it.i,`Создано: ${it.n}${it.make?' ×'+it.make:''}`);checkAch();save();render()}
+function craft(id){const it=ITEMS[id];if(shopState()!=='open')return;const cost=adjCost(it.cost,priceMult('it:'+id).m);if(S.lvl<it.lv||!canPay(cost)||(it.once&&S.inv[id]))return;pay(cost);useAction('it:'+id);S.inv[id]=(S.inv[id]||0)+(it.make||1);S.cnt.crafts++;quest('craft');SFX.coin();toast(it.i,`Создано: ${it.n}${it.make?' ×'+it.make:''} · осталось действий: ${actionsLeft()}`);checkAch();save();render()}
 
 /* ============ ЛАВКА ============ */
 let shopSeg='pets';
-function renderShop(){const segs=[['pets','🐾 Питомцы'],['village','🏘️ Деревня'],['themes','🎨 Фон'],['luck','🎁 Удача'],['trade','🔄 Обмен']];
+const LUCK=2;
+function renderShop(){const st=shopState();const segs=[['pets','🐾 Питомцы'],['village','🏘️ Деревня'],['themes','🎨 Фон'],['luck','🎁 Удача'],['trade','🔄 Обмен']];
+const P=(id,base)=>{const pm=priceMult(id);return{v:adj(base,pm.m),w:whyH(pm.why),m:pm.m}};
 let body='';
-if(shopSeg==='pets')body=PETS.map(p=>{const own=S.pets.includes(p.id);return `<div class="rec"><div class="ri">${p.i}</div><div class="rb"><div class="rn">${p.n}</div><div class="rd">${p.d}</div><div class="cost">${own?(S.pet===p.id?'⭐ идёт с тобой':'✅ твой'):`${DI} ${p.cost}`}</div></div>${own?(S.pet===p.id?'':`<button class="btn sm blue" data-pa="${p.id}">Взять</button>`):`<button class="btn sm" data-pb="${p.id}" ${S.dia>=p.cost?'':'disabled'}>Купить</button>`}</div>`}).join('')+'<p class="muted small">Питомец живёт на главной и даёт бонус в своих мирах. С собой можно взять одного.</p>';
-if(shopSeg==='village')body=`<div class="village" style="margin-bottom:10px">${BUILD.map(b=>S.build[b.id]?`<div class="plot">${b.i}</div>`:'<div class="plot empty">?</div>').join('')}</div>`+BUILD.map(b=>{const own=S.build[b.id];const ok=S.dia>=b.d&&canPay(b.cost);return `<div class="rec"><div class="ri">${b.i}</div><div class="rb"><div class="rn">${b.n}</div><div class="cost">${own?'✅ построено':`<span class="${S.dia<b.d?'no':''}">${DI} ${b.d}</span>${costHtml(b.cost)}`}</div></div>${own?'':`<button class="btn sm" data-bb="${b.id}" ${ok?'':'disabled'}>Строить</button>`}</div>`}).join('')+`<p class="muted small">Каждая постройка: +1 ${EM} в сундуке дня каждый день.</p>`;
-if(shopSeg==='themes')body=THEMES.map(t=>{const own=S.themes.includes(t.id);return `<div class="rec"><div class="ri" style="background:${t.c}"></div><div class="rb"><div class="rn">${t.n}</div><div class="cost">${own?(S.theme===t.id?'⭐ включён':'✅ куплен'):`${DI} ${t.cost}`}</div></div>${own?(S.theme===t.id?'':`<button class="btn sm blue" data-ta="${t.id}">Включить</button>`):`<button class="btn sm" data-tb="${t.id}" ${S.dia>=t.cost?'':'disabled'}>Купить</button>`}</div>`}).join('');
-if(shopSeg==='luck')body=`<div class="center"><div style="font-size:70px">🎁</div><p><b>Сундук удачи</b> — внутри изумруды, ресурсы, а иногда факелы, щит или зелье!</p><button class="btn gold" id="luck" ${S.dia>=1?'':'disabled'}>Открыть за 1 ${DI}</button></div>`;
-if(shopSeg==='trade')body=`<div class="rec"><div class="ri">${DI}</div><div class="rb"><div class="rn">1 алмаз</div><div class="cost">${EM} 8</div></div><button class="btn sm" id="buyd" ${S.em>=8?'':'disabled'}>Обменять</button></div>`+Object.keys(RES).map(k=>`<div class="rec"><div class="ri">${blk(k,30)}</div><div class="rb"><div class="rn">${RES[k].n}</div><div class="cost">${EM} ${RES[k].p}</div></div><button class="btn sm" data-r="${k}" ${S.em>=RES[k].p?'':'disabled'}>Купить</button></div>`).join('');
-$('#view').innerHTML=`<div class="card"><h2>💎 Лавка</h2><p class="muted">Здесь тратятся алмазы и изумруды. Алмазы дают за новые уровни, достижения, серии и сундук дня.</p><div class="seg">${segs.map(([id,n])=>`<button data-s="${id}" class="${shopSeg===id?'on':''}">${n}</button>`).join('')}</div>${body}</div>`;
+if(shopSeg==='pets')body=PETS.map(p=>{const own=S.pets.includes(p.id);const pr=P('pet:'+p.id,p.cost);return `<div class="rec"><div class="ri">${p.i}</div><div class="rb"><div class="rn">${p.n}</div><div class="rd">${p.d}</div><div class="cost">${own?(S.pet===p.id?'⭐ идёт с тобой':'✅ твой'):`${DI} ${pr.v}${pr.w}`}</div></div>${own?(S.pet===p.id?'':`<button class="btn sm blue" data-pa="${p.id}">Взять</button>`):`<button class="btn sm" data-pb="${p.id}" ${S.dia>=pr.v?'':'disabled'}>Купить</button>`}</div>`}).join('')+'<p class="muted small">Питомец живёт на главной и даёт бонус в своих мирах. С собой можно взять одного (смена питомца бесплатна).</p>';
+if(shopSeg==='village')body=`<div class="village" style="margin-bottom:10px">${BUILD.map(b=>S.build[b.id]?`<div class="plot">${b.i}</div>`:'<div class="plot empty">?</div>').join('')}</div>`+BUILD.map(b=>{const own=S.build[b.id];const pm=priceMult('b:'+b.id);const d=adj(b.d,pm.m),c=adjCost(b.cost,pm.m);const ok=S.dia>=d&&canPay(c);return `<div class="rec"><div class="ri">${b.i}</div><div class="rb"><div class="rn">${b.n}</div><div class="cost">${own?'✅ построено':`<span class="${S.dia<d?'no':''}">${DI} ${d}</span>${costHtml(c)}${whyH(pm.why)}`}</div></div>${own?'':`<button class="btn sm" data-bb="${b.id}" ${ok?'':'disabled'}>Строить</button>`}</div>`}).join('')+`<p class="muted small">Каждая постройка: +1 ${EM} в сундуке дня каждый день.</p>`;
+if(shopSeg==='themes')body=THEMES.map(t=>{const own=S.themes.includes(t.id);const pr=P('th:'+t.id,t.cost);return `<div class="rec"><div class="ri" style="background:${t.c}"></div><div class="rb"><div class="rn">${t.n}</div><div class="cost">${own?(S.theme===t.id?'⭐ включён':'✅ куплен'):`${DI} ${pr.v}${pr.w}`}</div></div>${own?(S.theme===t.id?'':`<button class="btn sm blue" data-ta="${t.id}">Включить</button>`):`<button class="btn sm" data-tb="${t.id}" ${S.dia>=pr.v?'':'disabled'}>Купить</button>`}</div>`}).join('');
+if(shopSeg==='luck'){const pr=P('luck',LUCK);body=`<div class="center"><div style="font-size:70px">🎁</div><p><b>Сундук удачи</b> — внутри изумруды, ресурсы, а иногда факелы, щит или зелье!</p><button class="btn gold" id="luck" ${S.dia>=pr.v?'':'disabled'}>Открыть за ${pr.v} ${DI}</button><div class="mtop">${pr.w}</div></div>`}
+if(shopSeg==='trade'){const ex=P('exch',EXCH);body=`<div class="rec"><div class="ri">${DI}</div><div class="rb"><div class="rn">1 алмаз</div><div class="cost">${EM} ${ex.v}${ex.w}</div></div><button class="btn sm" id="buyd" ${S.em>=ex.v?'':'disabled'}>Обменять</button></div>`+Object.keys(RES).map(k=>{const pr=P('res:'+k,RES[k].p);return `<div class="rec"><div class="ri">${blk(k,30)}</div><div class="rb"><div class="rn">${RES[k].n}</div><div class="cost">${EM} ${pr.v}${pr.w}</div></div><button class="btn sm" data-r="${k}" ${S.em>=pr.v?'':'disabled'}>Купить</button></div>`}).join('')}
+$('#view').innerHTML=st!=='open'?gateCard():`<div class="card"><h2>💎 Лавка</h2>${shopBar()}<div class="seg">${segs.map(([id,n])=>`<button data-s="${id}" class="${shopSeg===id?'on':''}">${n}</button>`).join('')}</div>${body}${LEGEND}</div>`;
+bindGate();if(st!=='open')return;
 const V=$('#view');V.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{shopSeg=b.dataset.s;renderShop()});
-V.querySelectorAll('[data-pb]').forEach(b=>b.onclick=()=>{const p=PETS.find(x=>x.id===b.dataset.pb);if(S.dia<p.cost)return;spend(p.cost);S.pets.push(p.id);S.pet=p.id;SFX.lvl();levelUp('Новый друг!',p.n,p.i,p.d)});
+const ok=()=>shopState()==='open';
+V.querySelectorAll('[data-pb]').forEach(b=>b.onclick=()=>{const p=PETS.find(x=>x.id===b.dataset.pb);const v=P('pet:'+p.id,p.cost).v;if(!ok()||S.dia<v)return;useAction('pet:'+p.id);spend(v);S.pets.push(p.id);S.pet=p.id;SFX.lvl();levelUp('Новый друг!',p.n,p.i,p.d)});
 V.querySelectorAll('[data-pa]').forEach(b=>b.onclick=()=>{S.pet=b.dataset.pa;done()});
-V.querySelectorAll('[data-bb]').forEach(b=>b.onclick=()=>{const x=BUILD.find(y=>y.id===b.dataset.bb);if(S.dia<x.d||!canPay(x.cost))return;spend(x.d);pay(x.cost);S.build[x.id]=today();SFX.lvl();confetti();levelUp('Построено!',x.n,x.i,`+1 ${EM} в сундуке дня`)});
-V.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>{const x=THEMES.find(y=>y.id===b.dataset.tb);if(S.dia<x.cost)return;spend(x.cost);S.themes.push(x.id);S.theme=x.id;SFX.coin();done()});
+V.querySelectorAll('[data-bb]').forEach(b=>b.onclick=()=>{const x=BUILD.find(y=>y.id===b.dataset.bb);const pm=priceMult('b:'+x.id);const d=adj(x.d,pm.m),c=adjCost(x.cost,pm.m);if(!ok()||S.dia<d||!canPay(c))return;useAction('b:'+x.id);pay(c);spend(d);S.build[x.id]=today();SFX.lvl();confetti();levelUp('Построено!',x.n,x.i,`+1 ${EM} в сундуке дня`)});
+V.querySelectorAll('[data-tb]').forEach(b=>b.onclick=()=>{const x=THEMES.find(y=>y.id===b.dataset.tb);const v=P('th:'+x.id,x.cost).v;if(!ok()||S.dia<v)return;useAction('th:'+x.id);S.themes.push(x.id);S.theme=x.id;SFX.coin();spend(v)});
 V.querySelectorAll('[data-ta]').forEach(b=>b.onclick=()=>{S.theme=b.dataset.ta;done()});
-V.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const k=b.dataset.r;if(S.em<RES[k].p)return;S.em-=RES[k].p;addRes(k);SFX.coin();done()});
-const bd=$('#buyd');if(bd)bd.onclick=()=>{if(S.em<8)return;S.em-=8;S.dia++;SFX.coin();done()};
-const lk=$('#luck');if(lk)lk.onclick=openLuck;
+V.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const k=b.dataset.r;const v=P('res:'+k,RES[k].p).v;if(!ok()||S.em<v)return;useAction('res:'+k);S.em-=v;addRes(k);SFX.coin();done()});
+const bd=$('#buyd');if(bd)bd.onclick=()=>{const v=P('exch',EXCH).v;if(!ok()||S.em<v)return;useAction('exch');S.em-=v;S.dia++;SFX.coin();done()};
+const lk=$('#luck');if(lk)lk.onclick=()=>{const v=P('luck',LUCK).v;if(!ok()||S.dia<v)return;useAction('luck');openLuck(v)};
 function done(){checkAch();save();render()}}
 function spend(n){S.dia-=n;S.cnt.spent+=n;checkAch();save();render()}
-function openLuck(){if(S.dia<1)return;spend(1);const r=Math.random();let txt,ico='🎁';
-if(r<.08){S.inv.potion=(S.inv.potion||0)+1;txt='Зелье ума!';ico='🧪'}else if(r<.18){S.inv.shield=(S.inv.shield||0)+1;txt='Щит!';ico='🛡️'}else if(r<.33){S.inv.torch=(S.inv.torch||0)+3;txt='3 факела!';ico='🔥'}
-else if(r<.43){S.dia+=2;txt=`Двойной алмаз: +2 ${DI}!`;ico='💎'}
-else{const em=6+rnd(10);S.em+=em;const got={};for(let i=0;i<3;i++){const k=pick(['wood','stone','paper','coal','iron','gold','crystal']);got[k]=(got[k]||0)+1;addRes(k)}txt=`+${em} ${EM} `+Object.entries(got).map(([k,v])=>blk(k,16)+v).join(' ')}
+function openLuck(v){spend(v);const r=Math.random();let txt,ico='🎁';
+if(r<.07){S.inv.potion=(S.inv.potion||0)+1;txt='Зелье ума!';ico='🧪'}else if(r<.17){S.inv.shield=(S.inv.shield||0)+1;txt='Щит!';ico='🛡️'}else if(r<.32){S.inv.torch=(S.inv.torch||0)+2;txt='2 факела!';ico='🔥'}
+else if(r<.38){S.dia+=3;txt=`Тройной алмаз: +3 ${DI}!`;ico='💎'}
+else{const em=8+rnd(14);S.em+=em;const got={};for(let i=0;i<3;i++){const k=pick(['wood','stone','paper','coal','iron','gold','crystal']);got[k]=(got[k]||0)+1;addRes(k)}txt=`+${em} ${EM} `+Object.entries(got).map(([k,v])=>blk(k,16)+v).join(' ')}
 SFX.lvl();levelUp('Сундук удачи',txt,ico,'');save();render()}
 
 /* ============ УСПЕХИ ============ */
@@ -795,15 +826,15 @@ $('#view').innerHTML=`<div class="card"><h2>📊 Точность по прав�
 <div class="card"><h2>📦 Словарные слова</h2><p>Выучено (3+ повторения подряд): <b>${learned()}</b> из ${DICT.length} · в работе: ${Object.keys(S.sr).length} · ждут повторения: ${dueCount()}</p><div class="bar big"><i style="width:${learned()/DICT.length*100}%"></i></div></div>
 <div class="card"><h2>📓 Чаще всего ошибки</h2>${nbTop||'<p class="muted">Ошибок в тетради нет.</p>'}</div>
 <div class="card"><h2>📅 Календарь (4 недели)</h2><div class="cal">${cal.join('')}</div><p class="muted">Рекорд: ${S.days.best} дней подряд · всего походов: ${S.cnt.hikes} · верных ответов: ${S.cnt.correct}</p></div>
-<div class="card"><h2>🏆 Достижения ${got}/${ACH.length}</h2><p class="muted small">За каждое достижение +1 ${DI}</p><div class="ach">${ACH.map(a=>`<div class="${S.ach[a[0]]?'':'off'}" title="${a[2]}"><b>${a[3]}</b>${a[1]}</div>`).join('')}</div></div>`;
+<div class="card"><h2>🏆 Достижения ${got}/${ACH.length}</h2><p class="muted small">За достижение +3 ${EM}, за крупное (★) +1 ${DI}</p><div class="ach">${ACH.map(a=>`<div class="${S.ach[a[0]]?'':'off'}" title="${a[2]}"><b>${a[3]}</b>${BIG_ACH.has(a[0])||a[0].startsWith('m_')?'★ ':''}${a[1]}</div>`).join('')}</div></div>`;
 $('#view').querySelectorAll('.ach div').forEach((d,i)=>d.onclick=()=>toast(ACH[i][3],`${ACH[i][1]}: ${ACH[i][2]}`))}
 
 /* ============ МОДАЛКИ, ТОСТЫ ============ */
 function modal(html){const m=$('#modal');m.innerHTML=`<div class="sheet">${html}</div>`;m.classList.remove('hidden');m.onclick=e=>{if(e.target===m)closeModal()}}
 function closeModal(){$('#modal').classList.add('hidden');$('#modal').innerHTML=''}
-function showRule(id){const r=RULES[id];if(!r){closeModal();return}let bonus='';if(!S.readRules[id]){S.readRules[id]=1;S.em++;bonus=`<p class="pill">+1 ${EM} за первое прочтение</p>`;checkAch();save();renderTop()}
+function showRule(id){const r=RULES[id];if(!r){closeModal();return}let bonus='';if(!S.readRules[id]){S.readRules[id]=1;checkAch();save();renderTop()}
 modal(`<div class="rule"><h2>📖 ${r.t}</h2>${bonus}${r.h}</div><button class="btn wide mtop" id="cm">Понятно</button>`);$('#cm').onclick=closeModal}
-function showRules(){modal(`<h2>📖 Правила</h2>${Object.entries(RULES).map(([id,r])=>`<button class="btn wide gray" style="margin-bottom:6px;justify-content:flex-start" data-r="${id}">${S.readRules[id]?'✅':'📘'} ${r.t}</button>`).join('')}<p class="muted small">За первое прочтение каждого правила — изумруд.</p>`);
+function showRules(){modal(`<h2>📖 Правила</h2>${Object.entries(RULES).map(([id,r])=>`<button class="btn wide gray" style="margin-bottom:6px;justify-content:flex-start" data-r="${id}">${S.readRules[id]?'✅':'📘'} ${r.t}</button>`).join('')}`);
 document.querySelectorAll('#modal [data-r]').forEach(b=>b.onclick=()=>showRule(b.dataset.r))}
 function showSettings(){modal(`<h2>⚙️ Настройки</h2><button class="btn wide gray" id="s1">${S.sound?'🔇 Выключить звук':'🔊 Включить звук'}</button><div style="height:8px"></div>
 <button class="btn wide blue" id="tts">🗣 Проверить голос диктанта</button><p class="muted small">${hasTTS?(ruVoice?'Голос: '+esc(ruVoice.name):'Русский голос не найден — будет голос по умолчанию.'):'Этот браузер не умеет читать вслух.'} Если не слышно — проверьте, что на iPhone выключен беззвучный режим.</p>
@@ -815,6 +846,7 @@ function levelUp(h,sub,ico,extra){const d=document.createElement('div');d.classN
 function confetti(){const cols=['#5bb046','#ffd84a','#5ff0e8','#e2b996','#a0703f','#d64b3a'];for(let i=0;i<28;i++){const c=document.createElement('div');c.className='confetti';c.style.left=Math.random()*100+'vw';c.style.background=pick(cols);c.style.animationDelay=Math.random()*.5+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),2300)}}
 
 /* ============ СТАРТ ============ */
+if(!S.first){S.first=today();save()}
 render();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
